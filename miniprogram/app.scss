@@ -1,0 +1,67 @@
+/**app.wxss**/
+
+/* 全局暖橙色主题 */
+page {
+  /* TDesign 主题覆盖 */
+  --td-brand-color: #FF6B35;
+  --td-button-primary-bg-color: #FF6B35;
+  --td-button-primary-border-color: #FF6B35;
+  --td-button-primary-bg-color-disabled: #FFD4BF;
+  --td-button-primary-border-color-disabled: #FFD4BF;
+  --td-button-border-radius: 48rpx;
+
+  /* 品牌色 */
+  --color-brand: #FF6B35;
+  --color-brand-light: #FF8F5E;
+  --color-brand-gradient: linear-gradient(135deg, #FF6B35, #FF8F5E);
+  --color-brand-bg: rgba(255, 107, 53, 0.08);
+  --color-brand-bg-active: rgba(255, 107, 53, 0.15);
+
+  /* 语义色 */
+  --color-danger: #e74c3c;
+  --color-success: #27ae60;
+
+  /* 文字色阶 */
+  --color-text-primary: #222;
+  --color-text-body: #333;
+  --color-text-secondary: #666;
+  --color-text-hint: #999;
+  --color-text-disabled: #bbb;
+
+  /* 背景 */
+  --color-bg-card: #fff;
+  --color-bg-input: #fafafa;
+
+  /* 边框 */
+  --color-border: #f0f0f0;
+  --color-border-light: #eee;
+
+  /* 阴影 */
+  --shadow-card: 0 4rpx 20rpx rgba(255, 107, 53, 0.06);
+  --shadow-card-active: 0 2rpx 12rpx rgba(255, 107, 53, 0.12);
+  --shadow-float: 0 8rpx 32rpx rgba(255, 107, 53, 0.15);
+  --shadow-bottom-bar: 0 -4rpx 20rpx rgba(255, 107, 53, 0.08);
+
+  /* 圆角 */
+  --radius-sm: 8rpx;
+  --radius-md: 16rpx;
+  --radius-lg: 24rpx;
+  --radius-xl: 32rpx;
+  --radius-full: 48rpx;
+
+  /* 间距 */
+  --space-xs: 8rpx;
+  --space-sm: 16rpx;
+  --space-md: 24rpx;
+  --space-lg: 32rpx;
+  --space-xl: 48rpx;
+}
+
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}

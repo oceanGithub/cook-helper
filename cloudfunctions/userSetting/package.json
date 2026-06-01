@@ -1,0 +1,9 @@
+{
+  "name": "userSetting",
+  "version": "1.0.0",
+  "description": "用户设置读写",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

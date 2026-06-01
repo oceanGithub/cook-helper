@@ -1,0 +1,34 @@
+<view class="mine-page">
+  <!-- 头像卡片 -->
+  <view class="profile-card">
+    <image class="profile-avatar" src="{{userInfo.avatarUrl}}" mode="cover" wx:if="{{userInfo}}"></image>
+    <view class="profile-avatar-placeholder" wx:else></view>
+    <text class="profile-nickname">{{userInfo.nickName || '未登录'}}</text>
+  </view>
+
+  <!-- 功能菜单 -->
+  <view class="menu-section">
+    <t-cell-group>
+      <t-cell title="个人资料" hover arrow bindtap="goProfile" />
+      <t-cell title="我的小组" hover arrow bindtap="goGroupManage" />
+      <t-cell title="设置" hover arrow bindtap="onTapComing" />
+      <t-cell title="关于" hover arrow bindtap="onTapComing" />
+    </t-cell-group>
+  </view>
+
+  <!-- 退出登录 -->
+  <view class="logout-section" wx:if="{{showLogout}}">
+    <t-button theme="danger" variant="outline" size="small" bindtap="tapLogout">退出登录</t-button>
+  </view>
+
+  <!-- 退出确认弹窗 -->
+  <t-dialog
+    visible="{{showLogoutDialog}}"
+    title="退出登录"
+    content="确定要退出当前账号吗？"
+    confirm-btn="确定退出"
+    cancel-btn="取消"
+    bind:confirm="confirmLogout"
+    bind:cancel="cancelLogout"
+  />
+</view>

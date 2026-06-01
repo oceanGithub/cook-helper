@@ -1,0 +1,74 @@
+<view class="page">
+  <view class="form">
+    <!-- 一级分类 -->
+    <view class="form-item">
+      <text class="form-label"><text class="required">*</text>一级分类</text>
+      <view class="picker-row">
+        <picker mode="selector" range="{{categories1}}" range-key="name" value="{{l1Index}}" bindchange="onL1Change">
+          <view class="picker-val">{{categories1[l1Index] ? categories1[l1Index].name : '请选择'}}</view>
+        </picker>
+        <text class="clear-btn" wx:if="{{l1Index >= 0}}" catchtap="clearL1">✕</text>
+      </view>
+    </view>
+
+    <!-- 二级分类（可选） -->
+    <view class="form-item" wx:if="{{categories2.length > 0}}">
+      <text class="form-label">二级分类</text>
+      <view class="picker-row">
+        <picker mode="selector" range="{{categories2}}" range-key="name" value="{{l2Index}}" bindchange="onL2Change">
+          <view class="picker-val">{{l2Index >= 0 ? categories2[l2Index].name : '请选择'}}</view>
+        </picker>
+        <text class="clear-btn" wx:if="{{l2Index >= 0}}" catchtap="clearL2">✕</text>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label"><text class="required">*</text>菜品名称</text>
+      <view class="picker-row">
+        <input class="form-input" placeholder="请输入" value="{{name}}" bindinput="onNameChange" />
+        <text class="clear-btn" wx:if="{{name}}" catchtap="clearName">✕</text>
+      </view>
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">评分</text>
+      <view class="star-row">
+        <text class="star {{index < rating ? 'star--active' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" data-val="{{item}}" catchtap="onStarTap">★</text>
+      </view>
+    </view>
+
+    <view class="form-item form-item--col">
+      <text class="form-label">地址/店名</text>
+      <textarea class="form-textarea" placeholder="请输入" value="{{address}}" bindinput="onAddrChange" auto-height="{{true}}" maxlength="200" />
+    </view>
+
+    <view class="form-item form-item--col">
+      <text class="form-label">备注</text>
+      <textarea class="form-textarea" placeholder="请输入" value="{{note}}" bindinput="onNoteChange" auto-height="{{true}}" maxlength="200" />
+    </view>
+
+    <!-- 图片 -->
+    <view class="form-item form-item--col">
+      <text class="form-label">菜品图片</text>
+      <view class="image-grid">
+        <view class="image-cell" wx:for="{{images}}" wx:key="*this">
+          <image class="image-thumb" src="{{item}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage" />
+          <view class="image-del" data-index="{{index}}" catchtap="removeImage">✕</view>
+        </view>
+        <view class="image-cell image-add" wx:if="{{images.length < 5}}" bindtap="chooseImage">
+          <text class="image-add-icon">+</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-bar">
+    <t-button theme="primary" size="medium" shape="round" style="width:400rpx" loading="{{saving}}" bindtap="save">保存</t-button>
+  </view>
+
+  <!-- 加载蒙版 -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>

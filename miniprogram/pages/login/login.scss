@@ -1,0 +1,147 @@
+page {
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(180deg, #FFF5EE 0%, #FFECD2 50%, #FFF5EE 100%);
+}
+
+.login-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 48rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+// 顶部区域
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 60rpx;
+  animation: fade-in-down 0.6s ease both;
+}
+
+.app-name {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #FF6B35;
+  letter-spacing: 4rpx;
+}
+
+.app-slogan {
+  font-size: 26rpx;
+  color: #999;
+  margin-top: 16rpx;
+}
+
+// 登录卡片
+.login-card {
+  width: 100%;
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 60rpx 48rpx;
+  box-shadow: 0 8rpx 40rpx rgba(255, 107, 53, 0.08);
+  box-sizing: border-box;
+  animation: fade-in-up 0.6s ease 0.15s both;
+}
+
+// 头像区域
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 48rpx;
+}
+
+.avatar-btn {
+  position: relative;
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  line-height: normal;
+
+  &::after {
+    border: none;
+  }
+}
+
+.avatar-img {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  border: 6rpx solid #FF6B35;
+}
+
+.avatar-placeholder {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  border: 6rpx solid #FF6B35;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-placeholder-icon {
+  font-size: 64rpx;
+}
+
+.avatar-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60rpx;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 0 90rpx 90rpx;
+}
+
+.avatar-overlay-text {
+  font-size: 22rpx;
+  color: #fff;
+}
+
+// 输入区域
+.input-section {
+  margin-bottom: 48rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  padding-bottom: 8rpx;
+}
+
+
+// 按钮区域
+.btn-section {
+  margin-top: 20rpx;
+}
+// 底部装饰
+.login-footer {
+  margin-top: 40rpx;
+  animation: fade-in-up 0.5s ease 0.3s both;
+}
+
+.footer-text {
+  font-size: 26rpx;
+  color: #bbb;
+}
+
+@keyframes fade-in-down {
+  from { opacity: 0; transform: translateY(-30rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(30rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}

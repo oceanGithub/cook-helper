@@ -1,0 +1,9 @@
+{
+  "name": "sendDailyReminder",
+  "version": "1.0.0",
+  "description": "每日用餐计划订阅消息推送",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

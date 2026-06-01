@@ -1,0 +1,144 @@
+<!-- 无小组：居中空状态 -->
+<view class="container container--empty" wx:if="{{groupSections.length === 0}}">
+  <view class="empty-state">
+    <text class="empty-icon">👥</text>
+    <text class="empty-text">还没有加入任何小组</text>
+    <text class="empty-hint">创建或加入一个小组吧</text>
+    <view class="empty-actions">
+      <t-button theme="primary" size="small" shape="round" style="width:240rpx" bindtap="openCreate">创建小组</t-button>
+      <t-button theme="default" size="small" shape="round" style="width:240rpx" bindtap="openJoin">加入小组</t-button>
+    </view>
+  </view>
+</view>
+
+<!-- 有小组：可滚动列表 + 底部固定按钮 -->
+<view class="container" wx:else>
+  <scroll-view class="group-list-area" scroll-y>
+    <block wx:for="{{groupSections}}" wx:key="title" wx:for-item="section">
+      <view class="section-title">{{section.title}}</view>
+      <view
+        wx:for="{{section.groups}}"
+        wx:key="_id"
+        wx:for-item="item"
+        class="group-item {{currentGroupId === item._id ? 'group-item--active' : ''}}"
+      >
+        <view class="group-row">
+          <view class="group-name-area">
+            <text class="group-name">{{item.name}}</text>
+            <text wx:if="{{item.type === 'default'}}" class="group-default-tag">默认</text>
+          </view>
+          <view class="group-actions">
+            <text wx:if="{{item.type !== 'default'}}" class="group-action-icon" catchtap="openMembers" data-id="{{item._id}}" data-name="{{item.name}}">👥</text>
+            <text class="group-action-icon" catchtap="openEditGroup" data-id="{{item._id}}" data-name="{{item.name}}">✏️</text>
+            <text wx:if="{{item.type === 'default'}}" class="group-action-icon group-reset-icon" catchtap="resetDefaultGroup" data-id="{{item._id}}">🔄</text>
+            <text wx:if="{{item.type !== 'default' && item.createdBy === openid}}" class="group-action-icon" catchtap="deleteGroup" data-id="{{item._id}}">🗑️</text>
+            <text wx:if="{{item.type !== 'default' && item.createdBy !== openid}}" class="group-action-icon group-exit-icon" catchtap="leaveGroup" data-id="{{item._id}}" data-name="{{item.name}}">🚪</text>
+          </view>
+        </view>
+        <view class="group-row group-row--bottom">
+          <text class="group-count">{{item.memberIds.length}}人</text>
+          <view class="group-code-area">
+            <text class="group-code">邀请码: {{item.inviteCode}}</text>
+            <text class="group-copy-icon" catchtap="copyInviteCode" data-code="{{item.inviteCode}}">📋</text>
+          </view>
+          <switch
+            class="group-switch"
+            checked="{{currentGroupId === item._id}}"
+            color="#FF6B35"
+            size="small"
+            data-id="{{item._id}}"
+            bindchange="onToggleGroup"
+          />
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+
+  <view class="bottom-actions">
+    <t-button theme="primary" size="small" shape="round" bindtap="openCreate">创建小组</t-button>
+    <t-button theme="default" size="small" shape="round" bindtap="openJoin">加入小组</t-button>
+  </view>
+</view>
+
+<!-- 创建弹窗 -->
+<t-popup visible="{{showCreate}}" placement="center">
+  <view class="popup-box">
+    <text class="popup-title">创建小组</text>
+    <input
+      class="modal-input"
+      placeholder="输入小组名称"
+      value="{{groupName}}"
+      bindinput="onGroupNameChange"
+    />
+    <view class="popup-btns">
+      <t-button theme="default" size="small" style="width:240rpx" bindtap="closeCreate">取消</t-button>
+      <t-button theme="primary" size="small" style="width:240rpx" loading="{{creating}}" bindtap="doCreateGroup">确认创建</t-button>
+    </view>
+  </view>
+</t-popup>
+
+<!-- 加入弹窗 -->
+<t-popup visible="{{showJoin}}" placement="center">
+  <view class="popup-box">
+    <text class="popup-title">加入小组</text>
+    <input
+      class="modal-input join-input"
+      placeholder="输入4位邀请码"
+      value="{{inviteCode}}"
+      maxlength="{{4}}"
+      bindinput="onInviteCodeChange"
+    />
+    <view class="popup-btns">
+      <t-button theme="default" size="small" style="width:240rpx" bindtap="closeJoin">取消</t-button>
+      <t-button theme="primary" size="small" style="width:240rpx" loading="{{joining}}" bindtap="doJoinGroup">确认加入</t-button>
+    </view>
+  </view>
+</t-popup>
+
+<!-- 编辑小组名称弹窗 -->
+<t-popup visible="{{showEdit}}" placement="center">
+  <view class="popup-box">
+    <text class="popup-title">修改小组名称</text>
+    <input
+      class="modal-input"
+      placeholder="输入新名称"
+      value="{{editGroupName}}"
+      bindinput="onEditNameChange"
+    />
+    <view class="popup-btns">
+      <t-button theme="default" size="small" style="width:240rpx" bindtap="closeEdit">取消</t-button>
+      <t-button theme="primary" size="small" style="width:240rpx" loading="{{editing}}" bindtap="doEditGroup">确认</t-button>
+    </view>
+  </view>
+</t-popup>
+
+<!-- 成员列表弹窗 -->
+<t-popup visible="{{showMembers}}" placement="center">
+  <view class="popup-box">
+    <text class="popup-title">{{membersGroupName}} · 成员</text>
+    <view class="members-loading" wx:if="{{membersLoading}}">
+      <view class="members-loading-spinner"></view>
+      <text class="members-loading-text">加载中...</text>
+    </view>
+    <scroll-view class="members-list" scroll-y wx:elif="{{membersList.length > 0}}">
+      <view class="member-item" wx:for="{{membersList}}" wx:key="openid">
+        <image class="member-avatar" wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill" />
+        <view class="member-avatar member-avatar--text" wx:else>{{item.nickName[0] || '?'}}</view>
+        <text class="member-name">{{(item.nickName !== '匿名' ? item.nickName : '') || '?'}}{{item.openid === openid ? '（我）' : ''}}</text>
+        <text class="member-creator-tag" wx:if="{{item.isCreator}}">创建者</text>
+      </view>
+    </scroll-view>
+    <view class="members-empty" wx:elif="{{!membersLoading}}">
+      <text class="members-empty-text">暂无成员数据</text>
+    </view>
+    <view class="popup-btns-single">
+      <t-button theme="primary" size="small" bindtap="closeMembers">关闭</t-button>
+    </view>
+  </view>
+</t-popup>
+
+<!-- 加载蒙版 -->
+<view class="loading-overlay" wx:if="{{loading}}">
+  <view class="loading-spinner"></view>
+  <text class="loading-text">加载中...</text>
+</view>

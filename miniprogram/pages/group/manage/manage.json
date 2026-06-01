@@ -1,0 +1,12 @@
+{
+  "navigationStyle": "default",
+  "navigationBarTitleText": "美食小组",
+  "navigationBarBackgroundColor": "#FFF5EE",
+  "navigationBarTextStyle": "black",
+  "styleIsolation": "shared",
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-input": "tdesign-miniprogram/input/input",
+    "t-popup": "tdesign-miniprogram/popup/popup"
+  }
+}

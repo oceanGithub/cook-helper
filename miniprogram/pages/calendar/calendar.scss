@@ -1,0 +1,781 @@
+page {
+  height: 100vh;
+  background: linear-gradient(180deg, #FFF5EE 0%, #FFECD2 50%, #FFF5EE 100%);
+}
+
+.calendar-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+// ====== 月份切换栏 ======
+.month-bar {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.7));
+  padding-bottom: 12rpx;
+}
+
+.month-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80rpx;
+}
+
+.month-arrow {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  color: #FF6B35;
+  font-weight: 400;
+}
+
+.month-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #222;
+  min-width: 260rpx;
+  text-align: center;
+}
+
+// ====== 可滚动主体 ======
+.cal-body {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  z-index: 1;
+}
+
+// ====== 日历卡片 ======
+.cal-card {
+  background: #fff;
+  margin: 16rpx 24rpx;
+  border-radius: 24rpx;
+  padding: 20rpx 12rpx 12rpx;
+  box-shadow: 0 8rpx 40rpx rgba(255, 107, 53, 0.08);
+}
+
+// 星期头
+.cal-weekdays {
+  display: flex;
+  margin-bottom: 8rpx;
+}
+
+.cal-weekday {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--color-text-hint);
+  padding: 8rpx 0;
+}
+
+// 日期网格 7列
+.cal-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cal-cell {
+  width: calc(100% / 7);
+  height: calc((100vw - 72rpx) / 7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 6rpx 2rpx;
+  box-sizing: border-box;
+  border-radius: 12rpx;
+  position: relative;
+}
+
+.cal-cell--selected {
+  background: rgba(255, 107, 53, 0.08);
+}
+
+.cal-cell--today {
+  border: 3rpx solid #FF6B35;
+  border-radius: 14rpx;
+}
+
+.cal-cell--dim {
+  opacity: 0.3;
+}
+
+.cal-day {
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
+  margin-top: 4rpx;
+}
+
+.cal-cell--today .cal-day {
+  color: #FF6B35;
+  font-weight: 700;
+}
+
+.cal-cell--dim .cal-day {
+  color: #ccc;
+}
+
+.cal-cell:active {
+  background: rgba(255, 107, 53, 0.06);
+}
+
+// 日期方格内的计划图标
+.cal-plan-icon {
+  font-size: 24rpx;
+  margin-top: 2rpx;
+}
+
+// ====== 菜品区域 ======
+.section {
+  margin: 0 24rpx 16rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0 12rpx;
+}
+
+.section-header-bar {
+  width: 6rpx;
+  height: 28rpx;
+  background: #FF6B35;
+  border-radius: 3rpx;
+  margin-right: 12rpx;
+}
+
+.section-header-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #222;
+}
+
+.section-header-date {
+  font-size: 24rpx;
+  color: var(--color-text-hint);
+  margin-left: 12rpx;
+}
+
+.bell-hint {
+  font-size: 20rpx;
+  color: #FF6B35;
+  margin-left: auto;
+}
+
+// 菜品加载
+.dish-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dish-loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid rgba(255, 107, 53, 0.15);
+  border-top-color: #FF6B35;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// 菜品卡片
+.plan-dish-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 16rpx 12rpx 16rpx 16rpx;
+  margin-bottom: 12rpx;
+  box-shadow: 0 4rpx 20rpx rgba(255, 107, 53, 0.06);
+  position: relative;
+}
+
+.plan-dish-img {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+}
+
+.plan-dish-img--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 107, 53, 0.06);
+  font-size: 40rpx;
+}
+
+.plan-dish-placeholder {
+  font-size: 40rpx;
+}
+
+.plan-dish-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.plan-dish-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4rpx;
+}
+
+.plan-dish-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #222;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  margin-right: 12rpx;
+}
+
+.plan-dish-stars {
+  display: flex;
+  gap: 2rpx;
+  flex-shrink: 0;
+}
+
+.plan-dish-star {
+  font-size: 22rpx;
+  color: #eee;
+}
+
+.plan-dish-star--active {
+  color: #FF6B35;
+}
+
+.plan-dish-tags {
+  display: flex;
+  gap: 8rpx;
+  margin-bottom: 4rpx;
+}
+
+.plan-dish-eat-tag {
+  font-size: 20rpx;
+  color: #FF6B35;
+  background: rgba(255, 107, 53, 0.08);
+  border-radius: 16rpx;
+  padding: 2rpx 12rpx;
+}
+
+.plan-dish-addr {
+  font-size: 22rpx;
+  color: var(--color-text-hint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-dish-del {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #ccc;
+  flex-shrink: 0;
+  margin-left: 8rpx;
+}
+
+.plan-dish-del:active {
+  color: var(--color-danger);
+}
+
+.plan-dish-card:active {
+  background: var(--color-brand-bg-active);
+}
+
+// 空状态
+.cal-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 16rpx;
+}
+
+.cal-empty-text {
+  font-size: 28rpx;
+  color: var(--color-text-hint);
+  margin-bottom: 8rpx;
+}
+
+.cal-empty-hint {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.content-spacer {
+  height: calc(140rpx + env(safe-area-inset-bottom));
+}
+
+.plan-dish-bell {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  flex-shrink: 0;
+  opacity: 0.4;
+}
+
+.plan-dish-bell--active {
+  opacity: 1;
+}
+
+.plan-dish-bell:active {
+  transform: scale(1.2);
+}
+
+// ====== 吃货计划按钮 ======
+.plan-fab {
+  position: fixed;
+  left: 50%;
+  bottom: calc( 48rpx + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 22rpx 52rpx;
+  background: linear-gradient(135deg, #FF6B35, #FF8F5E);
+  border-radius: 48rpx;
+  box-shadow: 0 12rpx 40rpx rgba(255, 107, 53, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.plan-fab:active {
+  transform: translateX(-50%) scale(0.95);
+  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.25);
+}
+
+.plan-fab-icon {
+  font-size: 36rpx;
+  line-height: 1;
+}
+
+.plan-fab-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1;
+}
+
+// ====== 弹窗通用 ======
+.popup-box {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx 32rpx;
+  width: 560rpx;
+  box-sizing: border-box;
+}
+
+.popup-box--wide {
+  width: 620rpx;
+  height: 75vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 24rpx;
+  overflow: hidden;
+}
+
+.popup-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.popup-subtitle {
+  font-size: 26rpx;
+  color: #FF6B35;
+  text-align: center;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.popup-reminder-hint {
+  font-size: 22rpx;
+  color: #999;
+  text-align: center;
+  display: block;
+  margin-top: 16rpx;
+}
+
+.popup-reminder-link {
+  color: #FF6B35;
+  text-decoration: underline;
+}
+
+.popup-btns {
+  display: flex;
+  justify-content: center;
+  gap: 24rpx;
+  margin-top: 24rpx;
+  padding-top: 16rpx;
+  flex-shrink: 0;
+}
+
+// 日期选择器
+.date-picker-row {
+  display: flex;
+  justify-content: center;
+  margin: 24rpx 0;
+}
+
+.date-picker-value {
+  font-size: 32rpx;
+  color: #FF6B35;
+  font-weight: 500;
+  padding: 16rpx 32rpx;
+  background: rgba(255, 107, 53, 0.06);
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(255, 107, 53, 0.15);
+}
+
+// ====== 搜索栏 ======
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 107, 53, 0.06);
+  border-radius: 32rpx;
+  padding: 0 24rpx;
+  height: 72rpx;
+  margin: 8rpx 0 4rpx;
+  flex-shrink: 0;
+}
+
+.search-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 26rpx;
+  color: #333;
+  height: 100%;
+}
+
+.search-clear {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: #ccc;
+  color: #fff;
+  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+}
+
+// 分类 tabs (横向滚动)
+.cat-tabs {
+  display: flex;
+  white-space: nowrap;
+  padding: 16rpx 0 12rpx;
+  flex-shrink: 0;
+}
+
+.cat-tab {
+  display: inline-block;
+  font-size: 24rpx;
+  color: var(--color-text-hint);
+  padding: 10rpx 24rpx;
+  border-radius: 24rpx;
+  margin-right: 12rpx;
+  background: rgba(255, 107, 53, 0.05);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.cat-tab--active {
+  background: linear-gradient(135deg, #FF6B35, #FF8F5E);
+  color: #fff;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.25);
+}
+
+.cat-tab:active {
+  opacity: 0.7;
+}
+
+// 内容区（将按钮推至底部）
+.popup-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+// 菜品选择列表
+.dish-select-list {
+  flex: 1;
+  margin-top: 8rpx;
+  overflow: hidden;
+}
+
+.dish-select-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  margin-bottom: 12rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.06);
+  border: 2rpx solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.dish-select-card--checked {
+  border-color: #FF6B35;
+  background: rgba(255, 107, 53, 0.03);
+}
+
+.dish-select-card-img {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+}
+
+.dish-select-card-img--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 107, 53, 0.06);
+  font-size: 36rpx;
+}
+
+.dish-select-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dish-select-card-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.dish-select-card-stars {
+  display: flex;
+  gap: 2rpx;
+}
+
+.dish-select-card-star {
+  font-size: 22rpx;
+  color: #eee;
+}
+
+.dish-select-card-star--active {
+  color: #FF6B35;
+}
+
+.dish-select-card-check {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 3rpx solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: transparent;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  transition: all 0.15s;
+}
+
+.dish-select-card--checked .dish-select-card-check {
+  background: #FF6B35;
+  border-color: #FF6B35;
+  color: #fff;
+}
+
+// ====== 搭档选择 Step 2 ======
+.eat-mode-row {
+  display: flex;
+  gap: 20rpx;
+  padding: 16rpx 0 8rpx;
+  flex-shrink: 0;
+}
+
+.eat-mode-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 24rpx 0;
+  border-radius: 20rpx;
+  background: rgba(255, 107, 53, 0.05);
+  border: 3rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.eat-mode-btn--active {
+  background: rgba(255, 107, 53, 0.08);
+  border-color: #FF6B35;
+}
+
+.eat-mode-icon {
+  font-size: 44rpx;
+}
+
+.eat-mode-text {
+  font-size: 26rpx;
+  color: var(--color-text-hint);
+  font-weight: 500;
+}
+
+.eat-mode-btn--active .eat-mode-text {
+  color: #FF6B35;
+  font-weight: 600;
+}
+
+// ====== 餐次筛选 tabs ======
+.meal-filter-tabs {
+  display: flex;
+  white-space: nowrap;
+  padding: 8rpx 0 16rpx;
+}
+
+.meal-filter-tab {
+  display: inline-block;
+  font-size: 22rpx;
+  color: var(--color-text-hint);
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  margin-right: 12rpx;
+  background: rgba(255, 107, 53, 0.05);
+  flex-shrink: 0;
+}
+
+.meal-filter-tab--active {
+  background: linear-gradient(135deg, #FF6B35, #FF8F5E);
+  color: #fff;
+}
+
+// 餐次标签
+.plan-dish-meal-tag {
+  font-size: 20rpx;
+  color: #FF6B35;
+  background: rgba(255, 107, 53, 0.08);
+  border-radius: 16rpx;
+  padding: 2rpx 12rpx;
+}
+
+// ====== Step 2: 餐次选择卡片 ======
+.meal-type-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  padding: 8rpx 0 0;
+}
+
+.meal-type-card {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid transparent;
+  background: rgba(255, 107, 53, 0.04);
+  transition: all 0.15s;
+}
+
+.meal-type-card--active {
+  border-color: #FF6B35;
+  background: rgba(255, 107, 53, 0.06);
+}
+
+.meal-type-icon {
+  font-size: 36rpx;
+  margin-right: 16rpx;
+}
+
+.meal-type-label {
+  flex: 1;
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.meal-type-card--active .meal-type-label {
+  color: #FF6B35;
+  font-weight: 600;
+}
+
+.meal-type-card--active .dish-select-card-check {
+  background: #FF6B35;
+  border-color: #FF6B35;
+  color: #fff;
+}
+
+// ====== 背景浮动装饰 ======
+.bg-decor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-decor-item {
+  position: absolute;
+  font-size: 56rpx;
+  opacity: 0.07;
+}
+
+.bg-decor--1 { top: 10%; left: 5%; animation: cal-decor-float 7s ease-in-out infinite; }
+.bg-decor--2 { top: 22%; right: 8%; animation: cal-decor-float 8s ease-in-out 1.2s infinite; font-size: 44rpx; }
+.bg-decor--3 { bottom: 20%; left: 8%; animation: cal-decor-float 7.5s ease-in-out 2.5s infinite; font-size: 50rpx; opacity: 0.05; }
+.bg-decor--4 { top: 55%; right: 5%; animation: cal-decor-float 6.5s ease-in-out 0.6s infinite; font-size: 40rpx; }
+.bg-decor--5 { bottom: 35%; left: 75%; animation: cal-decor-float 9s ease-in-out 3.5s infinite; font-size: 46rpx; opacity: 0.06; }
+
+@keyframes cal-decor-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14rpx) rotate(5deg); }
+}
+

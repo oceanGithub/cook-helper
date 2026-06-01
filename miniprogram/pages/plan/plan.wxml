@@ -1,0 +1,6 @@
+<view class="plan-placeholder">
+  <view class="placeholder-body">
+    <text class="placeholder-icon">🍳</text>
+    <text class="placeholder-text">功能开发中...</text>
+  </view>
+</view>

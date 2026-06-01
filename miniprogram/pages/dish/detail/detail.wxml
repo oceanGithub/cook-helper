@@ -1,0 +1,177 @@
+<view class="detail-page">
+  <navigation-bar title="菜品详情" back />
+
+  <!-- 背景浮动装饰 -->
+  <view class="bg-decor">
+    <text class="bg-decor-item bg-decor--1">🍽️</text>
+    <text class="bg-decor-item bg-decor--2">✨</text>
+    <text class="bg-decor-item bg-decor--3">🍜</text>
+    <text class="bg-decor-item bg-decor--4">🌟</text>
+    <text class="bg-decor-item bg-decor--5">🥘</text>
+  </view>
+
+  <scroll-view class="detail-body" scroll-y>
+
+    <!-- ====== Zone 1: Hero 大图区 ====== -->
+    <block wx:if="{{dish}}">
+      <!-- 有图 -->
+      <view class="hero-area" wx:if="{{images.length > 0}}">
+        <swiper class="hero-swiper" circular="{{images.length > 1}}" bindchange="onSwiperChange">
+          <swiper-item wx:for="{{images}}" wx:key="*this">
+            <image class="hero-image" src="{{item}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage" />
+          </swiper-item>
+        </swiper>
+        <view class="hero-overlay"></view>
+        <view class="hero-counter" wx:if="{{images.length > 1}}">
+          <text class="hero-counter-text">{{currentImageIndex + 1}}/{{images.length}}</text>
+        </view>
+        <view class="hero-name-strip">
+          <text class="hero-name">{{dish.name}}</text>
+          <view class="hero-stars" wx:if="{{dish.rating > 0}}">
+            <text class="hero-star {{index < dish.rating ? 'hero-star--active' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this">★</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 无图占位 -->
+      <view class="hero-placeholder" wx:else>
+        <view class="hero-placeholder-bg">
+          <text class="hero-placeholder-emoji">🍽️</text>
+        </view>
+        <view class="hero-name-strip">
+          <text class="hero-name">{{dish.name}}</text>
+          <view class="hero-stars" wx:if="{{dish.rating > 0}}">
+            <text class="hero-star {{index < dish.rating ? 'hero-star--active' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this">★</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- ====== Zone 2: 装饰过渡 ====== -->
+      <view class="curve-transition">
+        <view class="curve-dots">
+          <view class="curve-dot"></view>
+          <view class="curve-dot"></view>
+          <view class="curve-dot"></view>
+          <view class="curve-dot"></view>
+          <view class="curve-dot"></view>
+        </view>
+      </view>
+
+      <!-- ====== Zone 3: 内容卡片 ====== -->
+      <view class="content-cards {{pageReady ? 'content-cards--visible' : ''}}">
+
+        <!-- 创建者芯片 -->
+        <view class="info-chip" wx:if="{{dish.createdByName && dish.createdByName !== '匿名'}}" style="animation-delay: 0.2s">
+          <view class="creator-avatar {{dish.createdBy === openid ? 'creator-avatar--self' : 'creator-avatar--other'}}">
+              <image class="creator-avatar-img" wx:if="{{dish.createdByAvatar}}" src="{{dish.createdByAvatar}}" mode="aspectFill" />
+              <text class="creator-avatar-text" wx:else>{{dish.createdByName[0]}}</text>
+          </view>
+          <view class="chip-content">
+            <text class="chip-label">推荐人</text>
+            <text class="chip-text">{{dish.createdByName}}{{dish.createdBy === openid ? '（我）' : ''}}</text>
+          </view>
+        </view>
+
+        <!-- 餐次标签（仅日历入口） -->
+        <view class="info-chip" wx:if="{{detailFrom === 'calendar' && mealType}}">
+          <view class="chip-icon-wrap">
+            <text class="chip-icon">{{mealType === 'breakfast' ? '☀️' : mealType === 'lunch' ? '🌤️' : mealType === 'afternoon_tea' ? '🌿' : mealType === 'dinner' ? '🌙' : mealType === 'late_night' ? '🏙️' : '🍽️'}}</text>
+          </view>
+          <view class="chip-content">
+            <text class="chip-label">餐次</text>
+            <text class="chip-text">{{mealType === 'breakfast' ? '早餐' : mealType === 'lunch' ? '午餐' : mealType === 'afternoon_tea' ? '下午茶' : mealType === 'dinner' ? '晚餐' : mealType === 'late_night' ? '宵夜' : mealType}}</text>
+          </view>
+        </view>
+
+        <!-- 搭档芯片（仅日历入口） -->
+        <view class="info-chip" wx:if="{{detailFrom === 'calendar' && partners.length > 0}}">
+          <view class="chip-icon-wrap">
+            <text class="chip-icon">👥</text>
+          </view>
+          <view class="chip-content">
+            <text class="chip-label">吃货搭档</text>
+            <view class="partner-tags">
+              <view class="partner-tag" wx:for="{{partners}}" wx:key="nickName">
+                <image class="partner-tag-avatar" wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill" />
+                <view class="partner-tag-avatar partner-tag-avatar--text" wx:else>
+                  <text>{{item.nickName[0] || '?'}}</text>
+                </view>
+                <text class="partner-tag-name">{{item.nickName}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- ✨ 装饰分割线 -->
+        <view class="ornament-divider">
+          <view class="ornament-line"></view>
+          <text class="ornament-icon">✨</text>
+          <view class="ornament-line ornament-line--right"></view>
+        </view>
+
+        <!-- 计划日期芯片（仅日历入口） -->
+        <view class="info-chip" wx:if="{{detailFrom === 'calendar' && planDate}}">
+          <view class="chip-icon-wrap">
+            <text class="chip-icon">📅</text>
+          </view>
+          <view class="chip-content">
+            <text class="chip-label">计划日期</text>
+            <text class="chip-text">{{planDate}}</text>
+          </view>
+        </view>
+
+        <!-- 地址芯片 -->
+        <view class="info-chip" wx:if="{{dish.address}}">
+          <view class="chip-icon-wrap">
+            <text class="chip-icon">📍</text>
+          </view>
+          <view class="chip-content">
+            <view class="chip-label-row">
+              <text class="chip-label">地址</text>
+              <view class="chip-copy" catchtap="copyAddress">
+                <text class="chip-copy-icon">📋</text>
+                <text class="chip-copy-text">复制</text>
+              </view>
+            </view>
+            <text class="chip-text">{{dish.address}}</text>
+          </view>
+        </view>
+
+        <!-- 备注芯片 -->
+        <view class="info-chip" wx:if="{{dish.note}}" style="animation-delay: 0.15s">
+          <view class="chip-icon-wrap">
+            <text class="chip-icon">💬</text>
+          </view>
+          <view class="chip-content">
+            <text class="chip-label">备注</text>
+            <text class="chip-text">{{dish.note}}</text>
+          </view>
+        </view>
+
+        <!-- 底部留白 -->
+        <view class="content-spacer"></view>
+      </view>
+    </block>
+  </scroll-view>
+
+  <!-- ====== Zone 4: 浮动操作栏 ====== -->
+  <view class="floating-bar" wx:if="{{dish && dish.createdBy === openid && detailFrom !== 'calendar'}}">
+    <view class="floating-bar-inner">
+      <t-button theme="primary" size="medium" shape="round" style="flex:1" bindtap="goEdit">
+        <text class="btn-icon">✏️</text>编辑
+      </t-button>
+      <t-button theme="danger" size="medium" shape="round" style="flex:1" bindtap="openDelete">
+        <text class="btn-icon">🗑️</text>删除
+      </t-button>
+    </view>
+  </view>
+
+  <!-- ====== Zone 5: 加载蒙版 ====== -->
+  <view class="loading-overlay" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>
+
+<!-- 删除确认弹窗 -->
+<t-dialog visible="{{showDeleteDialog}}" title="确认删除" content="删除后无法恢复" confirm-btn="{{deleting ? '删除中...' : '删除'}}" cancel-btn="取消" bind:confirm="confirmDelete" bind:cancel="closeDeleteDialog" />

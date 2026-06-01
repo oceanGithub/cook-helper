@@ -1,0 +1,162 @@
+<view class="cat-manage-page">
+  <!-- 全选行 - 固定在顶部 -->
+  <view class="cat-select-all-wrap" wx:if="{{deleteMode}}">
+    <view class="cat-item cat-item--select-all {{allSelected ? 'cat-item--selected' : ''}}" bindtap="toggleSelectAll">
+      <view class="cat-checkbox">{{allSelected ? '✓' : ''}}</view>
+      <text class="cat-name">全选</text>
+    </view>
+  </view>
+  <scroll-view class="cat-list" scroll-y wx:if="{{categories1.length > 0 || loading}}">
+    <view wx:for="{{categories1}}" wx:key="_id" class="cat-section">
+      <view
+        class="cat-item cat-item--l1 {{item._checked ? 'cat-item--selected' : ''}} {{expandedL1Id === item._id && !deleteMode ? 'cat-item--expanded' : ''}}"
+        data-id="{{item._id}}"
+        bindtap="{{deleteMode ? 'toggleSelect' : 'toggleL1'}}"
+      >
+        <view class="cat-checkbox" wx:if="{{deleteMode}}">{{item._checked ? '✓' : ''}}</view>
+        <text class="cat-icon">{{deleteMode ? '📁' : (expandedL1Id === item._id ? '📂' : '📁')}}</text>
+        <text class="cat-name">{{item.name}}</text>
+        <view class="cat-item-actions" wx:if="{{!deleteMode}}">
+          <text class="cat-action-icon" catchtap="openEditCat" data-id="{{item._id}}" data-name="{{item.name}}">✏️</text>
+          <text class="cat-action-icon cat-del-icon" catchtap="deleteCat" data-id="{{item._id}}" data-level="1">🗑️</text>
+        </view>
+      </view>
+
+      <!-- 正常模式：展开的 L1 显示 L2 -->
+      <view wx:if="{{!deleteMode && expandedL1Id === item._id}}" class="cat-sub-list">
+        <view wx:for="{{categories2}}" wx:key="_id" class="cat-item cat-item--l2">
+          <text class="cat-sub-icon">└</text>
+          <text class="cat-name">{{item.name}}</text>
+          <view class="cat-item-actions">
+            <text class="cat-action-icon" catchtap="openEditCat" data-id="{{item._id}}" data-name="{{item.name}}">✏️</text>
+            <text class="cat-action-icon cat-del-icon" catchtap="deleteCat" data-id="{{item._id}}" data-level="2">🗑️</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 删除模式：显示该 L1 下所有 L2 -->
+      <view wx:if="{{deleteMode}}" class="cat-sub-list">
+        <block wx:for="{{allCategories2}}" wx:key="_id" wx:for-item="sub">
+          <view wx:if="{{sub.parentId === item._id}}"
+                class="cat-item cat-item--l2 {{sub._checked ? 'cat-item--selected' : ''}}"
+                data-id="{{sub._id}}" bindtap="toggleSelect">
+            <view class="cat-checkbox">{{sub._checked ? '✓' : ''}}</view>
+            <text class="cat-sub-icon">└</text>
+            <text class="cat-name">{{sub.name}}</text>
+          </view>
+        </block>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 空状态 -->
+  <view class="cat-empty" wx:if="{{categories1.length === 0 && !loading}}">
+    <text class="cat-empty-icon">📂</text>
+    <text class="cat-empty-text">暂无分类</text>
+    <text class="cat-empty-hint">点击下方按钮添加分类</text>
+  </view>
+
+  <view class="bottom-bar" wx:if="{{!deleteMode}}">
+    <t-button wx:if="{{categories1.length > 0}}" theme="default" size="small" shape="round" style="width:200rpx" bindtap="enterDeleteMode">批量删除</t-button>
+    <t-button theme="primary" size="small" shape="round" style="width:200rpx" bindtap="openAddPopup">添加分类</t-button>
+  </view>
+
+  <!-- 批量删除底部栏 -->
+  <view class="batch-delete-wrap" wx:if="{{deleteMode}}">
+    <view class="batch-delete-hint">
+      <text class="batch-delete-hint-title">注意：</text>
+      <text>1、删除一级分类将同时删除其下二级分类及菜品</text>
+      <text>2、仅删除二级分类不影响菜品</text>
+    </view>
+    <view class="batch-delete-bar">
+      <t-button theme="default" size="small" shape="round" style="width:160rpx" bindtap="exitDeleteMode">取消</t-button>
+      <text class="batch-delete-count">已选 {{selectedIds.length}} 项</text>
+      <t-button theme="danger" size="small" shape="round" style="width:160rpx" bindtap="batchDelete" loading="{{batchDeleting}}" disabled="{{selectedIds.length === 0}}">删除</t-button>
+    </view>
+  </view>
+</view>
+
+<!-- 编辑弹窗 -->
+<t-popup visible="{{showEdit}}" placement="center">
+  <view class="popup-box">
+    <text class="popup-title">修改名称</text>
+    <input class="modal-input" placeholder="分类名称" value="{{editCatName}}" bindinput="onEditNameChange" />
+    <view class="popup-btns">
+      <t-button theme="default" size="small" style="width:240rpx" bindtap="closeEdit">取消</t-button>
+      <t-button theme="primary" size="small" style="width:240rpx" loading="{{saving}}" bindtap="doEditCat">确认</t-button>
+    </view>
+  </view>
+</t-popup>
+
+<!-- 新增弹窗 -->
+<t-popup visible="{{showAdd}}" placement="center">
+  <view class="popup-box" wx:if="{{catStep === 0}}">
+    <text class="popup-title">添加分类</text>
+    <view class="step-type-options">
+      <view class="type-option" bindtap="selectCatType" data-level="{{1}}">
+        <text class="type-icon">📁</text>
+        <text class="type-label">一级分类</text>
+      </view>
+      <view class="type-option" bindtap="selectCatType" data-level="{{2}}">
+        <text class="type-icon">📂</text>
+        <text class="type-label">二级分类</text>
+      </view>
+    </view>
+    <view class="popup-btns-single">
+      <t-button theme="default" size="small" bindtap="closeAddPopup">取消</t-button>
+    </view>
+  </view>
+
+  <view class="popup-box" wx:if="{{catStep === 1}}">
+    <text class="popup-title">新增{{catLevel === 1 ? '一级' : '二级'}}分类</text>
+    <view class="parent-select" wx:if="{{catLevel === 2}}" bindtap="selectParentCat">
+      <text class="{{catParentName ? '' : 'parent-select-placeholder'}}">所属一级：{{catParentName || '请选择'}}</text>
+      <text class="parent-select-arrow">{{showParentPicker ? '▲' : '▼'}}</text>
+    </view>
+    <view class="parent-picker" wx:if="{{showParentPicker}}">
+      <scroll-view class="parent-picker-list" scroll-y>
+        <view class="parent-picker-item" wx:for="{{categories1}}" wx:key="_id"
+              data-id="{{item._id}}" data-name="{{item.name}}" bindtap="pickParent">
+          {{item.name}}
+        </view>
+      </scroll-view>
+    </view>
+    <!-- L1: 多行动态输入（最多5行） -->
+    <view wx:if="{{catLevel === 1}}">
+      <view class="cat-row" wx:for="{{catNames}}" wx:key="index">
+        <view class="cat-input-box">
+          <input class="modal-input cat-row-input" placeholder="分类名称" value="{{item}}" data-index="{{index}}" bindinput="onCatNameChange" />
+        </view>
+        <view class="cat-row-btn cat-row-btn--add" bindtap="addCatRow" wx:if="{{index === 0 && catNames.length < 5}}">
+          <text>+</text>
+        </view>
+        <view class="cat-row-btn cat-row-btn--remove" bindtap="removeCatRow" data-index="{{index}}" wx:elif="{{index > 0}}">
+          <text>-</text>
+        </view>
+      </view>
+    </view>
+    <!-- L2: 单行输入 -->
+    <view wx:else class="cat-input-box">
+      <input class="modal-input" placeholder="分类名称" value="{{catNames[0]}}" data-index="{{0}}" bindinput="onCatNameChange" />
+    </view>
+    <view class="popup-btns">
+      <t-button theme="default" size="small" style="width:240rpx" bindtap="closeAddPopup">取消</t-button>
+      <t-button theme="primary" size="small" style="width:240rpx" bindtap="saveCategory" loading="{{saving}}">确认</t-button>
+    </view>
+  </view>
+
+  <view class="popup-box" wx:if="{{catStep === 2}}">
+    <text class="popup-title">一级分类已添加</text>
+    <text class="step2-hint">是否继续添加该分类下的二级分类？</text>
+    <view class="popup-btns">
+      <t-button theme="default" size="small" style="width:240rpx" bindtap="closeAddPopup">暂不</t-button>
+      <t-button theme="primary" size="small" style="width:240rpx" bindtap="continueAddSub">继续</t-button>
+    </view>
+  </view>
+</t-popup>
+
+<!-- 加载蒙版 -->
+<view class="loading-overlay" wx:if="{{loading}}">
+  <view class="loading-spinner"></view>
+  <text class="loading-text">加载中...</text>
+</view>

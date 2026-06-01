@@ -1,0 +1,278 @@
+<view class="calendar-page">
+  <!-- 月份切换栏 -->
+  <view class="month-bar">
+    <view class="month-nav-row">
+      <view class="month-arrow" bindtap="prevMonth">‹</view>
+      <text class="month-title">{{currentYear}}年 {{currentMonth}}月</text>
+      <view class="month-arrow" bindtap="nextMonth">›</view>
+    </view>
+  </view>
+
+  <!-- 背景浮动装饰 -->
+  <view class="bg-decor">
+    <text class="bg-decor-item bg-decor--1">🍽️</text>
+    <text class="bg-decor-item bg-decor--2">📅</text>
+    <text class="bg-decor-item bg-decor--3">🍜</text>
+    <text class="bg-decor-item bg-decor--4">🥢</text>
+    <text class="bg-decor-item bg-decor--5">🍰</text>
+  </view>
+
+  <scroll-view class="cal-body" scroll-y>
+    <!-- ====== 日历网格 ====== -->
+    <view class="cal-card">
+      <!-- 星期头 -->
+      <view class="cal-weekdays">
+        <text class="cal-weekday" wx:for="{{weekdays}}" wx:key="*this">{{item}}</text>
+      </view>
+      <!-- 日期方格 -->
+      <view class="cal-grid">
+        <view
+          class="cal-cell {{item.isSelected ? 'cal-cell--selected' : ''}} {{item.isToday ? 'cal-cell--today' : ''}} {{!item.isCurrentMonth ? 'cal-cell--dim' : ''}}"
+          wx:for="{{calendarDays}}"
+          wx:key="date"
+          bindtap="onDateTap"
+          data-date="{{item.date}}"
+        >
+          <text class="cal-day">{{item.day}}</text>
+          <text class="cal-plan-icon" wx:if="{{item.hasPlan}}">🍽️</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ====== 选中日期菜品 ====== -->
+    <view class="section">
+      <view class="section-header">
+        <view class="section-header-bar"></view>
+        <text class="section-header-text">{{selectedDate === today ? '今日菜品' : '菜品'}}</text>
+        <text class="section-header-date">{{selectedDate}}</text>
+        <text class="bell-hint" wx:if="{{selectedDate === tomorrow && dateDishes.length > 0}}">🔔 设为提醒</text>
+      </view>
+
+      <!-- 加载中 -->
+      <view class="dish-loading" wx:if="{{dishesLoading}}">
+        <view class="dish-loading-spinner"></view>
+      </view>
+
+      <!-- 菜品列表 -->
+      <view class="dish-list" wx:elif="{{dateDishes.length > 0}}">
+        <!-- 餐次筛选 tabs -->
+        <scroll-view class="meal-filter-tabs" scroll-x wx:if="{{dateDishes.length > 0}}">
+          <text class="meal-filter-tab {{mealFilter === '' ? 'meal-filter-tab--active' : ''}}" bindtap="onMealFilter" data-value="">全部</text>
+          <text class="meal-filter-tab {{mealFilter === item.value ? 'meal-filter-tab--active' : ''}}" wx:for="{{mealTypes}}" wx:key="value" bindtap="onMealFilter" data-value="{{item.value}}">{{item.icon}} {{item.label}}</text>
+        </scroll-view>
+
+        <view class="plan-dish-card" wx:for="{{filteredDateDishes}}" wx:key="planId" bindtap="goDishDetail" data-id="{{item.planId}}">
+          <image
+            class="plan-dish-img"
+            wx:if="{{item.dish.images && item.dish.images.length > 0}}"
+            src="{{item.dish.images[0]}}"
+            mode="aspectFill"
+          />
+          <image class="plan-dish-img" wx:elif="{{item.dish.imageUrl}}" src="{{item.dish.imageUrl}}" mode="aspectFill" />
+          <view class="plan-dish-img plan-dish-img--placeholder" wx:else>🍽️</view>
+          <view class="plan-dish-body">
+            <view class="plan-dish-row">
+              <text class="plan-dish-name">{{item.dish.name}}</text>
+              <view class="plan-dish-stars" wx:if="{{item.dish.rating > 0}}">
+                <text class="plan-dish-star {{starIdx < item.dish.rating ? 'plan-dish-star--active' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" wx:for-item="starVal" wx:for-index="starIdx">★</text>
+              </view>
+            </view>
+            <view class="plan-dish-tags">
+              <text class="plan-dish-meal-tag" wx:if="{{item.mealType}}">{{item.mealType === 'breakfast' ? '☀️ 早餐' : item.mealType === 'lunch' ? '🌤️ 午餐' : item.mealType === 'afternoon_tea' ? '🌿 下午茶' : item.mealType === 'dinner' ? '🌙 晚餐' : item.mealType === 'late_night' ? '🏙️ 宵夜' : ''}}</text>
+              <text class="plan-dish-eat-tag">{{item.partnerIds.length > 0 ? '👥 多人吃' : '🙋 一人食'}}</text>
+            </view>
+            <text class="plan-dish-addr" wx:if="{{item.dish.address}}">📍{{item.dish.address}}</text>
+          </view>
+          <view class="plan-dish-bell {{item.reminderEnabled ? 'plan-dish-bell--active' : ''}}" wx:if="{{selectedDate === tomorrow}}" catchtap="onReminderBell" data-id="{{item.planId}}" data-index="{{index}}">
+            {{item.reminderEnabled ? '🔔' : '🔕'}}
+          </view>
+          <view class="plan-dish-del" catchtap="openPlanDelete" data-id="{{item.planId}}">✕</view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="cal-empty" wx:else>
+        <text class="cal-empty-icon">😋</text>
+        <text class="cal-empty-text">{{selectedDate === today ? '今天' : ''}}还没安排菜品</text>
+        <text class="cal-empty-hint">点击下方按钮开始规划</text>
+      </view>
+    </view>
+
+    <view class="content-spacer"></view>
+  </scroll-view>
+
+  <!-- ====== 吃货计划按钮 ====== -->
+  <view class="plan-fab" bindtap="openPlanPopup">
+    <text class="plan-fab-icon">🍽️</text>
+    <text class="plan-fab-text">吃货日历</text>
+  </view>
+
+  <!-- ====== 吃货计划弹窗 ====== -->
+  <t-popup visible="{{showPlanPopup}}" placement="center">
+    <!-- Step 0: 选择日期 -->
+    <view class="popup-box" wx:if="{{planStep === 0}}">
+      <text class="popup-title">选择日期</text>
+      <picker mode="date" value="{{planDate}}" start="2020-01-01" bindchange="onPlanDateChange">
+        <view class="date-picker-value">{{planDate || '请选择日期'}}</view>
+      </picker>
+      <text class="popup-reminder-hint">提醒：可对明天（<text class="popup-reminder-link" catchtap="onSelectTomorrow">{{tomorrowLabel}}</text>）的菜品设置用餐提醒，今晚0:00推送</text>
+      <view class="popup-btns">
+        <t-button theme="default" size="small" bindtap="closePlanPopup">取消</t-button>
+        <t-button theme="primary" size="small" bindtap="goStep1">下一步</t-button>
+      </view>
+    </view>
+
+    <!-- Step 1: 选择菜品 -->
+    <view class="popup-box popup-box--wide" wx:if="{{planStep === 1}}">
+      <text class="popup-title">选择菜品</text>
+      <text class="popup-subtitle">{{planDate}}</text>
+
+      <!-- 搜索栏 -->
+      <view class="search-bar">
+        <text class="search-icon">🔍</text>
+        <input class="search-input" placeholder="搜索菜品..." value="{{planDishSearch}}" bindinput="onPlanDishSearch" />
+        <text class="search-clear" wx:if="{{planDishSearch}}" bindtap="onClearSearch">✕</text>
+      </view>
+
+      <!-- 分类 tabs -->
+      <scroll-view class="cat-tabs" scroll-x wx:if="{{categories1.length > 0}}">
+        <text class="cat-tab {{planCatFilter === '' ? 'cat-tab--active' : ''}}" bindtap="onPlanCatFilter" data-id="">全部</text>
+        <text class="cat-tab {{planCatFilter === item._id ? 'cat-tab--active' : ''}}" wx:for="{{categories1}}" wx:key="_id" bindtap="onPlanCatFilter" data-id="{{item._id}}">{{item.name}}</text>
+      </scroll-view>
+
+      <!-- 内容区（flex:1 填充剩余空间，将按钮推至底部） -->
+      <view class="popup-content">
+        <!-- 菜品列表加载中 -->
+        <view class="dish-loading" wx:if="{{dishesLoading}}">
+          <view class="dish-loading-spinner"></view>
+        </view>
+
+        <!-- 菜品列表 -->
+        <scroll-view class="dish-select-list" scroll-y wx:elif="{{filteredDishes.length > 0}}">
+          <view
+            class="dish-select-card {{item._checked ? 'dish-select-card--checked' : ''}}"
+            wx:for="{{filteredDishes}}"
+            wx:key="_id"
+            bindtap="toggleDishSelect"
+            data-id="{{item._id}}"
+          >
+            <image
+              class="dish-select-card-img"
+              wx:if="{{item.images && item.images.length > 0}}"
+              src="{{item.images[0]}}"
+              mode="aspectFill"
+            />
+            <image class="dish-select-card-img" wx:elif="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" />
+            <view class="dish-select-card-img dish-select-card-img--placeholder" wx:else>🍽️</view>
+            <view class="dish-select-card-body">
+              <text class="dish-select-card-name">{{item.name}}</text>
+              <view class="dish-select-card-stars">
+                <text class="dish-select-card-star {{starIdx < item.rating ? 'dish-select-card-star--active' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this" wx:for-item="starVal" wx:for-index="starIdx">★</text>
+              </view>
+            </view>
+            <view class="dish-select-card-check">{{item._checked ? '✓' : ''}}</view>
+          </view>
+        </scroll-view>
+
+        <!-- 空列表 / 搜索无结果 -->
+        <view class="cal-empty" wx:else>
+          <text class="cal-empty-icon">🔍</text>
+          <text class="cal-empty-text">{{planDishSearch || planCatFilter ? '未找到匹配菜品' : '当前分组还没有菜品'}}</text>
+          <t-button theme="primary" size="small" shape="round" bindtap="goAddDish">+ 添加新菜品</t-button>
+        </view>
+      </view>
+
+      <view class="popup-btns">
+        <t-button theme="default" size="small" bindtap="closePlanPopup">取消</t-button>
+        <t-button theme="primary" size="small" bindtap="goStep2" disabled="{{selectedDishIds.length === 0}}">
+          确认菜品（{{selectedDishIds.length}}）
+        </t-button>
+      </view>
+    </view>
+
+    <!-- Step 2: 选择餐次 -->
+    <view class="popup-box" wx:if="{{planStep === 2}}">
+      <text class="popup-title">选择餐次</text>
+      <text class="popup-subtitle">{{planDate}} · 已选{{selectedDishIds.length}}道菜</text>
+      <view class="meal-type-grid">
+        <view
+          class="meal-type-card {{selectedMealType === item.value ? 'meal-type-card--active' : ''}}"
+          wx:for="{{mealTypes}}"
+          wx:key="value"
+          bindtap="selectMealType"
+          data-value="{{item.value}}"
+        >
+          <text class="meal-type-icon">{{item.icon}}</text>
+          <text class="meal-type-label">{{item.label}}</text>
+          <view class="dish-select-card-check">{{selectedMealType === item.value ? '✓' : ''}}</view>
+        </view>
+      </view>
+      <view class="popup-btns">
+        <t-button theme="default" size="small" bindtap="closePlanPopup">取消</t-button>
+        <t-button theme="default" size="small" bindtap="backToStep1">上一步</t-button>
+        <t-button theme="primary" size="small" bindtap="goStep3" disabled="{{!selectedMealType}}">下一步</t-button>
+      </view>
+    </view>
+
+    <!-- Step 3: 选择搭档 -->
+    <view class="popup-box {{!eatAlone ? 'popup-box--wide' : ''}}" wx:if="{{planStep === 3}}">
+      <text class="popup-title">选择搭档</text>
+      <text class="popup-subtitle">{{planDate}} · 已选{{selectedDishIds.length}}道菜</text>
+
+      <!-- 一人/多人切换 -->
+      <view class="eat-mode-row">
+        <view class="eat-mode-btn {{eatAlone ? 'eat-mode-btn--active' : ''}}" bindtap="toggleEatMode" data-mode="alone">
+          <text class="eat-mode-icon">🙋</text>
+          <text class="eat-mode-text">一个人吃</text>
+        </view>
+        <view class="eat-mode-btn {{!eatAlone ? 'eat-mode-btn--active' : ''}}" bindtap="toggleEatMode" data-mode="multi">
+          <text class="eat-mode-icon">👥</text>
+          <text class="eat-mode-text">多人吃</text>
+        </view>
+      </view>
+
+      <!-- 搭档列表（仅多人模式） -->
+      <view class="popup-content" wx:if="{{!eatAlone}}">
+        <scroll-view class="dish-select-list" scroll-y wx:if="{{partners.length > 0}}">
+          <view
+            class="dish-select-card {{item._checked ? 'dish-select-card--checked' : ''}}"
+            wx:for="{{partners}}"
+            wx:key="openid"
+            bindtap="togglePartnerSelect"
+            data-id="{{item.openid}}"
+          >
+            <image class="dish-select-card-img" wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill" />
+            <view class="dish-select-card-img dish-select-card-img--placeholder" wx:else>{{item.nickName[0] || '?'}}</view>
+            <view class="dish-select-card-body">
+              <text class="dish-select-card-name">{{item.nickName}}</text>
+            </view>
+            <view class="dish-select-card-check">{{item._checked ? '✓' : ''}}</view>
+          </view>
+        </scroll-view>
+        <view class="cal-empty" wx:else>
+          <text class="cal-empty-icon">👥</text>
+          <text class="cal-empty-text">当前分组暂无其他成员</text>
+        </view>
+      </view>
+
+      <view class="popup-btns">
+        <t-button theme="default" size="small" bindtap="closePlanPopup">取消</t-button>
+        <t-button theme="default" size="small" bindtap="backToStep2">上一步</t-button>
+        <t-button theme="primary" size="small" bindtap="confirmPlan" loading="{{planSaving}}" disabled="{{!eatAlone && selectedPartnerIds.length === 0}}">
+          确认添加
+        </t-button>
+      </view>
+    </view>
+  </t-popup>
+
+  <!-- ====== 删除确认 ====== -->
+  <t-dialog
+    visible="{{showDeleteDialog}}"
+    title="移除计划"
+    content="确认从该日期移除菜品？"
+    confirm-btn="{{planDeleting ? '移除中...' : '移除'}}"
+    cancel-btn="取消"
+    bind:confirm="confirmDeletePlan"
+    bind:cancel="closeDeleteDialog"
+  />
+</view>

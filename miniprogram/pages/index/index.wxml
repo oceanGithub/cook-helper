@@ -1,0 +1,302 @@
+<view class="kitchen-page">
+  <!-- 导航栏区域（含状态栏安全区） -->
+  <view class="kitchen-nav" style="padding-top: {{statusBarHeight}}px">
+    <view class="group-bar" bindtap="goGroupManage">
+      <text class="group-icon">👥</text>
+      <text class="group-name">{{currentGroupName}}</text>
+      <text class="group-arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 主体：左侧分类 + 右侧内容 -->
+  <view class="main-area" wx:if="{{categories1.length > 0 || loading}}">
+    <!-- 背景浮动装饰 -->
+    <view class="bg-decor">
+      <text class="bg-decor-item bg-decor--1">🍽️</text>
+      <text class="bg-decor-item bg-decor--2">🥢</text>
+      <text class="bg-decor-item bg-decor--3">🥘</text>
+      <text class="bg-decor-item bg-decor--4">🧂</text>
+      <text class="bg-decor-item bg-decor--5">🍜</text>
+    </view>
+    <!-- 左侧分类栏 -->
+    <t-side-bar value="{{activeCategoryId}}" bind:change="selectCategory" class="side-bar" wx:if="{{categories1.length > 0}}">
+      <view wx:for="{{categories1}}" wx:key="_id" bindlongpress="onSidebarLongPress" data-id="{{item._id}}" data-name="{{item.name}}">
+        <t-side-bar-item
+          value="{{item._id}}"
+          label="{{item.name}}"
+          t-class="sidebar-item"
+        />
+      </view>
+    </t-side-bar>
+    <view class="side-bar side-bar--empty" wx:else>
+      <text class="side-bar-empty-text">暂无分类</text>
+    </view>
+
+    <!-- 右侧内容区 -->
+    <view class="content-area">
+      <!-- 分类切换加载 -->
+      <view class="dish-loading" wx:if="{{dishesLoading}}">
+        <view class="dish-loading-spinner"></view>
+      </view>
+
+      <!-- 菜品分组列表（可滚动） -->
+      <scroll-view class="dish-area" scroll-y wx:elif="{{groupedDishes.length > 0}}">
+        <view class="dish-list">
+          <block wx:for="{{groupedDishes}}" wx:key="categoryId" wx:for-item="section">
+            <view class="section-header">
+              <text class="section-header-text">{{section.categoryName}}</text>
+              <text class="section-header-count">{{section.dishes.length}}个</text>
+            </view>
+            <block wx:for="{{section.dishes}}" wx:key="_id" wx:for-item="dish">
+              <view class="card-swipe-wrapper" wx:if="{{dish.createdBy === openid}}">
+                <view class="swipe-inner" style="transform: translateX({{swipedCardId === dish._id ? swipeOffset : 0}}px); transition: {{swipedCardId === dish._id && swipeAnimated ? 'transform 0.3s' : 'none'}};">
+                  <view
+                    class="dish-card"
+                    bindtouchstart="onCardTouchStart"
+                    bindtouchmove="onCardTouchMove"
+                    bindtouchend="onCardTouchEnd"
+                    catchtap="openDishDetail"
+                    data-id="{{dish._id}}"
+                  >
+                    <image class="card-image" wx:if="{{dish.images && dish.images.length > 0}}" src="{{dish.images[0]}}" mode="aspectFill" />
+                    <image class="card-image" wx:elif="{{dish.imageUrl}}" src="{{dish.imageUrl}}" mode="aspectFill" />
+                    <view class="card-image-placeholder" wx:else>🍽️</view>
+                    <view class="card-body">
+                      <view class="card-name-row">
+                        <text class="card-name">{{dish.name}}</text>
+                        <text class="card-tag">我</text>
+                        <view class="card-stars">
+                          <text class="card-star {{index < dish.rating ? 'card-star--active' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this">★</text>
+                        </view>
+                      </view>
+                      <text class="card-note" wx:if="{{dish.note}}">{{dish.note}}</text>
+                      <text class="card-addr" wx:if="{{dish.address}}">📍{{dish.address}}</text>
+                    </view>
+                  </view>
+                  <view class="swipe-actions">
+                    <text class="swipe-action swipe-edit" data-dish="{{dish}}" catchtap="openDishEdit">编辑</text>
+                    <text class="swipe-action swipe-del" data-id="{{dish._id}}" catchtap="openDeleteDish">删除</text>
+                  </view>
+                </view>
+              </view>
+              <view
+                class="dish-card"
+                wx:else
+                catchtap="openDishDetail"
+                data-id="{{dish._id}}"
+              >
+                <image class="card-image" wx:if="{{dish.images && dish.images.length > 0}}" src="{{dish.images[0]}}" mode="aspectFill" />
+                <image class="card-image" wx:elif="{{dish.imageUrl}}" src="{{dish.imageUrl}}" mode="aspectFill" />
+                <view class="card-image-placeholder" wx:else>🍽️</view>
+                <view class="card-body">
+                  <view class="card-name-row">
+                    <text class="card-name">{{dish.name}}</text>
+                    <text class="card-tag card-tag--other" wx:if="{{dish.createdByName && dish.createdByName !== '匿名'}}">{{dish.createdByName}}</text>
+                    <view class="card-stars">
+                      <text class="card-star {{index < dish.rating ? 'card-star--active' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this">★</text>
+                    </view>
+                  </view>
+                  <text class="card-note" wx:if="{{dish.note}}">{{dish.note}}</text>
+                  <text class="card-addr" wx:if="{{dish.address}}">📍{{dish.address}}</text>
+                </view>
+              </view>
+            </block>
+          </block>
+        </view>
+      </scroll-view>
+
+      <!-- 空状态 -->
+      <view class="empty-dishes" wx:else>
+        <text class="empty-icon">🍽️</text>
+        <text class="empty-text">还没有菜品</text>
+        <text class="empty-hint">点击右下角 + 录入菜品</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 引导空状态（无分类时） -->
+  <view class="guide-empty" wx:if="{{categories1.length === 0 && !loading}}">
+    <!-- 装饰背景 -->
+    <view class="guide-bg-decor">
+      <view class="guide-bg-ring guide-bg-ring--outer"></view>
+      <view class="guide-bg-ring guide-bg-ring--mid"></view>
+      <view class="guide-bg-ring guide-bg-ring--inner"></view>
+    </view>
+
+    <!-- 浮动装饰 emoji -->
+    <text class="guide-float guide-float--1">🍜</text>
+    <text class="guide-float guide-float--2">🍕</text>
+    <text class="guide-float guide-float--3">🍣</text>
+    <text class="guide-float guide-float--4">🍩</text>
+    <text class="guide-float guide-float--5">🥑</text>
+    <text class="guide-float guide-float--6">🍰</text>
+
+    <!-- 中心内容 -->
+    <view class="guide-content">
+      <!-- 图标 + 脉动光环 -->
+      <view class="guide-icon-wrap">
+        <view class="guide-icon-ring"></view>
+        <text class="guide-icon">📋</text>
+      </view>
+      <!-- 文案 -->
+      <text class="guide-title">还没有分类</text>
+      <text class="guide-desc">先创建分类，再给分类添加菜品</text>
+      <view class="guide-btn" bindtap="openCatPopup">
+        <text class="guide-btn-text">添加分类</text>
+        <text class="guide-btn-arrow">→</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 悬浮按钮（无分类时隐藏） -->
+  <view class="fab-container" wx:if="{{categories1.length > 0 || loading}}">
+    <view class="fab-item fab-dish" bindtap="openDishAdd">
+      <text class="fab-icon">🍽️</text>
+      <text class="fab-label">菜品</text>
+    </view>
+    <view class="fab-item fab-cat" bindtap="openCatPopup">
+      <text class="fab-icon">📁</text>
+      <text class="fab-label">分类</text>
+    </view>
+    <view class="fab-item fab-plan" bindtap="openPlanPage">
+      <text class="fab-icon">📅</text>
+      <text class="fab-label">日历</text>
+    </view>
+  </view>
+</view>
+
+<!-- 分类弹窗 -->
+<t-popup visible="{{showCatPopup}}" placement="center">
+  <!-- Step 0: 选择分类类型 -->
+  <view class="popup-box" wx:if="{{catStep === 0}}">
+    <text class="popup-title">添加分类</text>
+    <view class="step-type-options">
+      <view class="type-option" bindtap="selectCatType" data-level="{{1}}">
+        <text class="type-icon">📁</text>
+        <text class="type-label">一级分类</text>
+      </view>
+      <view class="type-option" bindtap="selectCatType" data-level="{{2}}">
+        <text class="type-icon">📂</text>
+        <text class="type-label">二级分类</text>
+      </view>
+    </view>
+    <view class="cat-manage-entry" bindtap="goCategoryManage">
+      <text class="cat-manage-icon">📋</text>
+      <text class="cat-manage-label">管理分类</text>
+      <text class="cat-manage-arrow">›</text>
+    </view>
+    <view class="popup-btns-single">
+      <t-button theme="default" size="small" bindtap="closeCatPopup">取消</t-button>
+    </view>
+  </view>
+
+  <!-- Step 1: 填写名称 -->
+  <view class="popup-box" wx:if="{{catStep === 1}}">
+    <text class="popup-title">新增{{catLevel === 1 ? '一级' : '二级'}}分类</text>
+    <view class="parent-select" wx:if="{{catLevel === 2}}" bindtap="selectParentCat">
+      <text class="{{catParentName ? '' : 'parent-select-placeholder'}}">所属一级：{{catParentName || '请选择'}}</text>
+      <text class="parent-select-arrow">{{showParentPicker ? '▲' : '▼'}}</text>
+    </view>
+    <view class="parent-picker" wx:if="{{showParentPicker}}">
+      <scroll-view class="parent-picker-list" scroll-y>
+        <view class="parent-picker-item" wx:for="{{categories1}}" wx:key="_id"
+              data-id="{{item._id}}" data-name="{{item.name}}" bindtap="pickParent">
+          {{item.name}}
+        </view>
+      </scroll-view>
+    </view>
+    <!-- L1: 多行动态输入（最多5行） -->
+    <view wx:if="{{catLevel === 1}}">
+      <view class="cat-row" wx:for="{{catNames}}" wx:key="index">
+        <view class="cat-input-box">
+          <t-input class="cat-row-input" placeholder="分类名称" value="{{item}}" data-index="{{index}}" borderless="{{true}}" bind:change="onCatNameChange" />
+        </view>
+        <view class="cat-row-btn cat-row-btn--add" bindtap="addCatRow" wx:if="{{index === 0 && catNames.length < 5}}">
+          <text>+</text>
+        </view>
+        <view class="cat-row-btn cat-row-btn--remove" bindtap="removeCatRow" data-index="{{index}}" wx:elif="{{index > 0}}">
+          <text>-</text>
+        </view>
+      </view>
+    </view>
+    <!-- L2: 单行输入 -->
+    <view wx:else class="cat-input-box">
+      <t-input placeholder="分类名称" value="{{catNames[0]}}" data-index="{{0}}" borderless="{{true}}" bind:change="onCatNameChange" />
+    </view>
+    <view class="popup-btns">
+      <t-button theme="default" size="small" bindtap="closeCatPopup">取消</t-button>
+      <t-button theme="primary" size="small" bindtap="saveCategory" loading="{{catSaving}}">确认</t-button>
+    </view>
+  </view>
+
+  <!-- Step 2: 添加二级确认 -->
+  <view class="popup-box" wx:if="{{catStep === 2}}">
+    <text class="popup-title">一级分类已添加</text>
+    <text class="step2-hint">是否继续添加该分类下的二级分类？</text>
+    <view class="popup-btns">
+      <t-button theme="default" size="small" bindtap="closeCatPopup">暂不</t-button>
+      <t-button theme="primary" size="small" bindtap="continueAddSub">继续</t-button>
+    </view>
+  </view>
+</t-popup>
+
+<!-- 删除确认 -->
+<t-dialog
+  visible="{{showDeleteDialog}}"
+  title="确认删除"
+  content="删除后无法恢复"
+  confirm-btn="{{dishDeleting ? '删除中...' : '删除'}}"
+  cancel-btn="取消"
+  bind:confirm="confirmDeleteDish"
+  bind:cancel="closeDeleteDialog"
+/>
+
+<!-- 长按操作菜单 -->
+<t-popup visible="{{showCatAction}}" placement="center">
+  <view class="popup-box">
+    <text class="popup-title">操作分类</text>
+    <text class="popup-subtitle">{{actionCatName}}</text>
+    <view class="step-type-options">
+      <view class="type-option" bindtap="onActionRename">
+        <text class="type-icon">✏️</text>
+        <text class="type-label">重命名</text>
+      </view>
+      <view class="type-option" bindtap="onActionDelete">
+        <text class="type-icon">🗑️</text>
+        <text class="type-label type-label--danger">删除</text>
+      </view>
+    </view>
+    <view class="popup-btns-single">
+      <t-button theme="default" size="small" bindtap="closeCatAction">取消</t-button>
+    </view>
+  </view>
+</t-popup>
+
+<!-- 删除分类确认 -->
+<t-dialog
+  visible="{{showCatDeleteDialog}}"
+  title="删除分类"
+  content="将同时删除「{{actionCatName}}」下的所有二级分类和菜品，此操作不可恢复"
+  confirm-btn="{{catDeleting ? '删除中...' : '删除'}}"
+  cancel-btn="取消"
+  bind:confirm="confirmDeleteCat"
+  bind:cancel="closeCatDeleteDialog"
+/>
+
+<!-- 重命名分类弹窗 -->
+<t-popup visible="{{showRename}}" placement="center">
+  <view class="popup-box">
+    <text class="popup-title">重命名分类</text>
+    <t-input placeholder="分类名称" value="{{renameCatName}}" borderless="{{true}}" bind:change="onRenameInput" />
+    <view class="popup-btns">
+      <t-button theme="default" size="small" bindtap="closeRename">取消</t-button>
+      <t-button theme="primary" size="small" bindtap="doRenameCat" loading="{{catSaving}}">确认</t-button>
+    </view>
+  </view>
+</t-popup>
+
+<!-- 加载蒙版 -->
+<view class="loading-overlay" wx:if="{{loading}}">
+  <view class="loading-spinner"></view>
+  <text class="loading-text">加载中...</text>
+</view>
