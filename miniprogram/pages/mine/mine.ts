@@ -45,9 +45,6 @@ Component({
     cancelLogout() {
       this.setData({ showLogoutDialog: false })
     },
-    onTapComing() {
-      wx.showToast({ title: '功能建设中', icon: 'none' })
-    },
     goGroupManage() {
       wx.navigateTo({ url: '/pages/group/manage/manage' })
     },

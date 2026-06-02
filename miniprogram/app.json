@@ -36,9 +36,9 @@
       },
       {
         "pagePath": "pages/notify/notify",
-        "text": "排行",
-        "iconPath": "assets/icons/rank.png",
-        "selectedIconPath": "assets/icons/rank-active.png"
+        "text": "休闲",
+        "iconPath": "assets/icons/leisure.png",
+        "selectedIconPath": "assets/icons/leisure-active.png"
       },
       {
         "pagePath": "pages/mine/mine",

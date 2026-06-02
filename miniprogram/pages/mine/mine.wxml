@@ -11,8 +11,6 @@
     <t-cell-group>
       <t-cell title="个人资料" hover arrow bindtap="goProfile" />
       <t-cell title="我的小组" hover arrow bindtap="goGroupManage" />
-      <t-cell title="设置" hover arrow bindtap="onTapComing" />
-      <t-cell title="关于" hover arrow bindtap="onTapComing" />
     </t-cell-group>
   </view>
 
