@@ -483,14 +483,14 @@ Component({
       const groupedDishes = this.data.groupedDishes
       if (!groupedDishes || groupedDishes.length === 0) return
 
-      // 收集所有 createdByName 为空的菜品的 createdBy
+      // 收集所有菜品的 createdBy，查询最新用户信息
       const openids = new Set<string>()
       const dishesByOpenid: Record<string, { gi: number; di: number; dishId: string }[]> = {}
       for (let gi = 0; gi < groupedDishes.length; gi++) {
         const group = groupedDishes[gi]
         for (let di = 0; di < group.dishes.length; di++) {
           const dish = group.dishes[di]
-          if (dish.createdBy && (!dish.createdByName || dish.createdByName === '匿名')) {
+          if (dish.createdBy) {
             openids.add(dish.createdBy)
             if (!dishesByOpenid[dish.createdBy]) dishesByOpenid[dish.createdBy] = []
             dishesByOpenid[dish.createdBy].push({ gi, di, dishId: dish._id })
@@ -504,15 +504,17 @@ Component({
         const infos = (res.result as any)?.list || []
         const nameMap: Record<string, string> = {}
         for (const info of infos) {
-          if (info.nickName) nameMap[info.openid] = info.nickName
+          if (info.nickName && info.nickName !== '匿名') nameMap[info.openid] = info.nickName
         }
 
         // 更新 UI 数据
         const updated = [...groupedDishes]
         for (const [openid, entries] of Object.entries(dishesByOpenid)) {
           const name = nameMap[openid]
-          if (!name || name === '匿名') continue
+          if (!name) continue
           for (const { gi, di } of entries) {
+            const oldName = updated[gi].dishes[di].createdByName
+            if (name === oldName) continue
             updated[gi] = { ...updated[gi], dishes: [...updated[gi].dishes] }
             updated[gi].dishes[di] = { ...updated[gi].dishes[di], createdByName: name }
           }
@@ -522,8 +524,10 @@ Component({
         // 回写数据库（异步，不阻塞 UI）
         for (const [openid, entries] of Object.entries(dishesByOpenid)) {
           const name = nameMap[openid]
-          if (!name || name === '匿名') continue
-          for (const { dishId } of entries) {
+          if (!name) continue
+          for (const { gi, di, dishId } of entries) {
+            const oldName = groupedDishes[gi].dishes[di].createdByName
+            if (name === oldName) continue
             db.collection('dishes').doc(dishId).update({ data: { createdByName: name } }).catch(() => {})
           }
         }

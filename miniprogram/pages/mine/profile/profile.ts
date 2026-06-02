@@ -107,6 +107,20 @@ Component({
           console.error('同步小组成员信息失败', e)
         }
 
+        // 同步更新所有菜品的创建者信息
+        try {
+          await wx.cloud.callFunction({
+            name: 'dishOp',
+            data: {
+              action: 'batchUpdateCreator',
+              collection: 'dishes',
+              data: { createdByName: trimName, createdByAvatar: finalAvatarUrl },
+            },
+          })
+        } catch (e) {
+          console.error('同步菜品创建者信息失败', e)
+        }
+
         wx.showToast({ title: '已保存', icon: 'success' })
         setTimeout(() => wx.navigateBack(), 800)
       } catch (e) {

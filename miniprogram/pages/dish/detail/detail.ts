@@ -86,21 +86,22 @@ Component({
 
     async resolveCreatorName(dish: Dish) {
       if (!dish.createdBy) return
-      const needName = !dish.createdByName || dish.createdByName === '匿名'
-      const needAvatar = !dish.createdByAvatar
-      if (!needName && !needAvatar) return
       try {
         const res = await wx.cloud.callFunction({ name: 'getMemberInfos', data: { openids: [dish.createdBy] } })
         const info = (res.result as any)?.list?.[0]
         if (!info) return
         const updates: any = {}
-        if (needName && info.nickName && info.nickName !== '匿名') updates['dish.createdByName'] = info.nickName
-        if (needAvatar && info.avatarUrl) updates['dish.createdByAvatar'] = info.avatarUrl
+        const dbUpdate: any = {}
+        if (info.nickName && info.nickName !== '匿名' && info.nickName !== dish.createdByName) {
+          updates['dish.createdByName'] = info.nickName
+          dbUpdate.createdByName = info.nickName
+        }
+        if (info.avatarUrl && info.avatarUrl !== dish.createdByAvatar) {
+          updates['dish.createdByAvatar'] = info.avatarUrl
+          dbUpdate.createdByAvatar = info.avatarUrl
+        }
         if (Object.keys(updates).length > 0) {
           this.setData(updates)
-          const dbUpdate: any = {}
-          if (updates['dish.createdByName']) dbUpdate.createdByName = info.nickName
-          if (updates['dish.createdByAvatar']) dbUpdate.createdByAvatar = info.avatarUrl
           db.collection('dishes').doc(dish._id).update({ data: dbUpdate })
         }
       } catch (e) {}

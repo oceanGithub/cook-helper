@@ -68,5 +68,18 @@ exports.main = async (event, context) => {
     return await db.collection(collection).doc(id).remove()
   }
 
+  if (action === 'batchUpdateCreator') {
+    const { createdByName, createdByAvatar } = data || {}
+    const updateData = {}
+    if (createdByName) updateData.createdByName = createdByName
+    if (createdByAvatar) updateData.createdByAvatar = createdByAvatar
+    if (Object.keys(updateData).length === 0) return { updated: 0, ok: true }
+    // 只允许更新自己创建的菜品
+    const count = await db.collection('dishes').where({ createdBy: openid }).update({
+      data: updateData,
+    })
+    return { updated: count.stats.updated, ok: true }
+  }
+
   return { err: 'unknown action', ok: false }
 }
