@@ -16,6 +16,19 @@ interface Dish {
   createdAt?: string
 }
 
+interface Recipe {
+  _id: string
+  dishName: string
+  difficulty: number
+  prepTime: number
+  cookTime: number
+  coverImage?: string
+  likeCount: number
+  tryCount: number
+  createdByName: string
+  createdByAvatar?: string
+}
+
 Component({
   data: {
     dishId: '',
@@ -31,6 +44,7 @@ Component({
     planDate: '',
     mealType: '',
     partners: [] as { nickName: string; avatarUrl: string }[],
+    relatedRecipes: [] as Recipe[],
   },
 
   lifetimes: {
@@ -74,6 +88,7 @@ Component({
         this.setData({ dish: d, images, currentImageIndex: 0, pageReady: false })
         setTimeout(() => this.setData({ pageReady: true }), 300)
         this.resolveCreatorName(d)
+        this.loadRelatedRecipes()
         if (this.data.detailFrom === 'calendar') {
           this.loadPartners()
         }
@@ -81,6 +96,21 @@ Component({
         wx.showToast({ title: '加载失败', icon: 'none' })
       } finally {
         this.setData({ loading: false })
+      }
+    },
+
+    async loadRelatedRecipes() {
+      try {
+        const res = await db.collection('recipes')
+          .where({ dishId: this.data.dishId })
+          .orderBy('createdAt', 'desc')
+          .limit(5)
+          .get()
+
+        const recipes = (res.data || []) as Recipe[]
+        this.setData({ relatedRecipes: recipes })
+      } catch (e) {
+        console.error('加载相关菜谱失败', e)
       }
     },
 
@@ -104,7 +134,7 @@ Component({
           this.setData(updates)
           db.collection('dishes').doc(dish._id).update({ data: dbUpdate })
         }
-      } catch (e) {}
+      } catch (e) { }
     },
 
     onSwiperChange(e: WechatMiniprogram.SwiperChange) {
@@ -117,6 +147,12 @@ Component({
         current: this.data.images[idx],
         urls: this.data.images,
       })
+    },
+
+    goToRecipeDetail(e: WechatMiniprogram.TouchEvent) {
+      const recipeId = e.currentTarget.dataset.id
+      wx.setStorageSync('detailRecipeId', recipeId)
+      wx.navigateTo({ url: '/pages/kitchen/detail/detail' })
     },
 
     async loadPartners() {

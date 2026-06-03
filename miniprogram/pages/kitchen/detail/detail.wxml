@@ -1,0 +1,244 @@
+<wxs src="./utils.wxs" module="utils" />
+<view class="detail-page">
+
+  <!-- 骨架屏加载效果 -->
+  <view class="skeleton" wx:if="{{loading}}">
+    <view class="skeleton-cover"></view>
+    <view class="skeleton-info">
+      <view class="skeleton-title"></view>
+      <view class="skeleton-meta"></view>
+      <view class="skeleton-author"></view>
+    </view>
+    <view class="skeleton-section">
+      <view class="skeleton-section-title"></view>
+      <view class="skeleton-grid">
+        <view class="skeleton-grid-item" wx:for="{{[1,2,3,4,5,6]}}" wx:key="*this"></view>
+      </view>
+    </view>
+    <view class="skeleton-section">
+      <view class="skeleton-section-title"></view>
+      <view class="skeleton-steps">
+        <view class="skeleton-step" wx:for="{{[1,2,3]}}" wx:key="*this">
+          <view class="skeleton-step-num"></view>
+          <view class="skeleton-step-content"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 实际内容 -->
+  <scroll-view class="content" scroll-y wx:else>
+    <!-- 封面图 -->
+    <view class="cover-section">
+      <swiper class="cover-swiper" wx:if="{{recipe.coverImage}}" autoplay circular>
+        <swiper-item>
+          <image class="cover-image" src="{{recipe.coverImage}}" mode="aspectFill" bindtap="previewCover" />
+        </swiper-item>
+      </swiper>
+      <view class="cover-placeholder" wx:else>
+        <text class="cover-placeholder-icon">🍽️</text>
+        <text class="cover-placeholder-text">暂无封面图</text>
+      </view>
+    </view>
+
+    <!-- 基本信息 -->
+    <view class="info-section">
+      <view class="recipe-header">
+        <text class="recipe-name">{{recipe.dishName}}</text>
+        <view class="recipe-meta">
+          <view class="difficulty">
+            <text class="difficulty-label">难度：</text>
+            <text class="difficulty-stars">
+              <text wx:for="{{[1,2,3]}}" wx:key="*this" class="star {{item <= recipe.difficulty ? 'star-active' : ''}}">★</text>
+            </text>
+          </view>
+          <view class="time-info">
+            <text class="time-icon">⏱</text>
+            <text class="time-text">准备 {{recipe.prepTime}}分钟 | 烹饪 {{recipe.cookTime}}分钟</text>
+          </view>
+          <view class="servings" wx:if="{{recipe.servings}}">
+            <text class="servings-icon">👥</text>
+            <text class="servings-text">{{recipe.servings}}人份</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 作者信息 -->
+      <view class="author-section">
+        <image class="author-avatar" wx:if="{{recipe.createdByAvatar}}" src="{{recipe.createdByAvatar}}" mode="aspectFill" binderror="onAvatarError" data-type="author" />
+        <view class="author-avatar-placeholder" wx:else>
+          <text>{{recipe.createdByName[0] || '?'}}</text>
+        </view>
+        <view class="author-info">
+          <text class="author-name">{{recipe.createdByName || '匿名用户'}}</text>
+          <text class="create-time">{{createTimeText}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 食材 -->
+    <view class="section" wx:if="{{recipe.ingredients && recipe.ingredients.length > 0}}">
+      <view class="section-title">🥬 食材</view>
+      <view class="ingredients-grid">
+        <view class="ingredient-item" wx:for="{{recipe.ingredients}}" wx:key="name">
+          <text class="ingredient-name">{{item.name}}</text>
+          <text class="ingredient-amount">{{item.amount}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 调料 -->
+    <view class="section" wx:if="{{recipe.seasonings && recipe.seasonings.length > 0}}">
+      <view class="section-title">🧂 调料</view>
+      <view class="ingredients-grid">
+        <view class="ingredient-item" wx:for="{{recipe.seasonings}}" wx:key="name">
+          <text class="ingredient-name">{{item.name}}</text>
+          <text class="ingredient-amount">{{item.amount}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 步骤 -->
+    <view class="section" wx:if="{{recipe.steps && recipe.steps.length > 0}}">
+      <view class="section-title">👨‍🍳 步骤</view>
+      <view class="steps-list">
+        <view class="step-item" wx:for="{{recipe.steps}}" wx:key="index">
+          <view class="step-number">{{index + 1}}</view>
+          <view class="step-content">
+            <image class="step-image" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" bindtap="previewStepImage" data-index="{{index}}" />
+            <text class="step-text">{{item.text}}</text>
+            <view class="step-timer" wx:if="{{item.timer > 0}}">
+              <text class="timer-icon">⏱</text>
+              <text class="timer-text">需要 {{utils.formatTimer(item.timer)}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 小贴士 -->
+    <view class="section" wx:if="{{recipe.tips}}">
+      <view class="section-title">💡 小贴士</view>
+      <view class="tips-content">
+        <text class="tips-text">{{recipe.tips}}</text>
+      </view>
+    </view>
+
+    <!-- 分割线：菜谱内容与互动内容分隔 -->
+    <view class="divider" wx:if="{{tries.length > 0 || comments.length > 0 || triesLoading || commentsLoading}}">
+      <text class="divider-text">— 互动区 —</text>
+    </view>
+
+    <!-- 我做了 打卡区域 -->
+    <view class="section" wx:if="{{tries.length > 0 || triesLoading}}">
+      <view class="section-title">👨‍🍳 我做了</view>
+      <!-- 加载中状态 -->
+      <view class="section-loading" wx:if="{{triesLoading}}">
+        <view class="section-loading-spinner"></view>
+        <text class="section-loading-text">加载中...</text>
+      </view>
+      <!-- 打卡列表 -->
+      <scroll-view class="tries-scroll" scroll-x wx:elif="{{tries.length > 0}}">
+        <view class="try-item" wx:for="{{tries}}" wx:key="_id">
+          <view class="try-header">
+            <image class="try-avatar" wx:if="{{item.createdByAvatar}}" src="{{item.createdByAvatar}}" mode="aspectFill" binderror="onAvatarError" data-type="try" data-index="{{index}}" />
+            <view class="try-avatar-placeholder" wx:else>
+              <text>{{item.createdByName[0] || '?'}}</text>
+            </view>
+            <text class="try-name">{{item.createdByName || '匿名用户'}}</text>
+          </view>
+          <view class="try-images" wx:if="{{item.images && item.images.length > 0}}">
+            <image class="try-image" wx:for="{{item.images}}" wx:for-item="img" wx:for-index="imgIdx" wx:key="*this" src="{{img}}" mode="aspectFill" bindtap="previewTryImage" data-try-index="{{index}}" data-img-index="{{imgIdx}}" />
+          </view>
+          <text class="try-note" wx:if="{{item.note}}">{{item.note}}</text>
+          <view class="try-footer" wx:if="{{item._openid === openid}}">
+            <view class="try-delete {{deletingTryId === item._id ? 'try-delete--loading' : ''}}" bindtap="confirmDeleteTry" data-id="{{item._id}}" disabled="{{deletingTryId === item._id}}">
+              <text class="try-delete-icon">{{deletingTryId === item._id ? '⏳' : '🗑️'}}</text>
+              <text class="try-delete-text">{{deletingTryId === item._id ? '删除中...' : '删除'}}</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 评论区域 -->
+    <view class="section" wx:if="{{comments.length > 0 || commentsLoading}}">
+      <view class="section-title">💬 评论 ({{commentsLoading ? '' : comments.length}})</view>
+      <!-- 加载中状态 -->
+      <view class="section-loading" wx:if="{{commentsLoading}}">
+        <view class="section-loading-spinner"></view>
+        <text class="section-loading-text">加载中...</text>
+      </view>
+      <!-- 评论列表 -->
+      <view class="comments-list" wx:elif="{{comments.length > 0}}">
+        <view class="comment-item" wx:for="{{comments}}" wx:key="_id">
+          <view class="comment-header">
+            <image class="comment-avatar" wx:if="{{item.createdByAvatar}}" src="{{item.createdByAvatar}}" mode="aspectFill" binderror="onAvatarError" data-type="comment" data-index="{{index}}" />
+            <view class="comment-avatar-placeholder" wx:else>
+              <text>{{item.createdByName[0] || '?'}}</text>
+            </view>
+            <view class="comment-info">
+              <text class="comment-name">{{item.createdByName || '匿名用户'}}</text>
+              <text class="comment-time">{{item.createTimeText}}</text>
+            </view>
+          </view>
+          <text class="comment-content">{{item.content}}</text>
+          <view class="comment-footer" wx:if="{{item._openid === openid}}">
+            <view class="comment-delete {{deletingCommentId === item._id ? 'comment-delete--loading' : ''}}" bindtap="confirmDeleteComment" data-id="{{item._id}}" disabled="{{deletingCommentId === item._id}}">
+              <text class="comment-delete-icon">{{deletingCommentId === item._id ? '⏳' : '🗑️'}}</text>
+              <text class="comment-delete-text">{{deletingCommentId === item._id ? '删除中...' : '删除'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部安全区域 -->
+    <view class="safe-area-bottom"></view>
+  </scroll-view>
+
+  <!-- 评论输入弹窗 -->
+  <view class="comment-modal" wx:if="{{showComment}}" bindtap="hideCommentInput">
+    <view class="comment-modal-content" catchtap>
+      <textarea class="comment-input" placeholder="写下你的评论..." value="{{commentText}}" bindinput="onCommentInput" focus="{{showComment}}" maxlength="500" />
+      <view class="comment-modal-actions">
+        <button class="comment-cancel" bindtap="hideCommentInput" disabled="{{commenting}}">取消</button>
+        <button class="comment-submit" bindtap="submitComment" disabled="{{commenting}}">{{commenting ? '发布中...' : '发布'}}</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作区 -->
+  <view class="bottom-container" wx:if="{{!loading}}">
+    <!-- 上部分：互动操作栏 -->
+    <view class="action-bar">
+      <view class="action-item {{isLiked ? 'action-active' : ''}}" bindtap="toggleLike">
+        <text class="action-icon">{{isLiked ? '❤️' : '🤍'}}</text>
+        <text class="action-text">{{recipe.likeCount || 0}}</text>
+      </view>
+      <view class="action-item {{isBookmarked ? 'action-active' : ''}}" bindtap="toggleBookmark">
+        <text class="action-icon">{{isBookmarked ? '⭐' : '☆'}}</text>
+        <text class="action-text">收藏</text>
+      </view>
+      <view class="action-item" bindtap="goToTry">
+        <text class="action-icon">👨‍🍳</text>
+        <text class="action-text">做过 {{recipe.tryCount || 0}}</text>
+      </view>
+      <view class="action-item" bindtap="showCommentInput">
+        <text class="action-icon">💬</text>
+        <text class="action-text">评论 {{comments.length || 0}}</text>
+      </view>
+    </view>
+    <!-- 下部分：按钮栏 -->
+    <view class="bottom-bar">
+      <view class="bottom-bar-left" wx:if="{{isCreator}}">
+        <button class="edit-btn" bindtap="goToEdit" disabled="{{deleting}}">编辑</button>
+        <button class="delete-btn" bindtap="confirmDelete" disabled="{{deleting}}">{{deleting ? '删除中...' : '删除'}}</button>
+      </view>
+      <button class="start-cooking-btn" bindtap="startCooking">
+        <text class="cooking-icon">🔥</text>
+        <text class="cooking-text">开始烹饪</text>
+      </button>
+    </view>
+  </view>
+</view>

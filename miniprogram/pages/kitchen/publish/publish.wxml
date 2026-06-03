@@ -1,0 +1,560 @@
+﻿<wxs src="./utils.wxs" module="utils" />
+<view class="publish-page">
+
+  <view class="content">
+    <!-- 进度条 -->
+    <view class="progress-section">
+      <view class="progress-steps">
+        <view class="step-item">
+          <view class="step-dot {{currentStep >= 1 ? 'step-active' : ''}}">1</view>
+          <text class="step-label">选菜品</text>
+        </view>
+        <view class="step-line {{currentStep >= 2 ? 'step-active' : ''}}"></view>
+        <view class="step-item">
+          <view class="step-dot {{currentStep >= 2 ? 'step-active' : ''}}">2</view>
+          <text class="step-label">食材</text>
+        </view>
+        <view class="step-line {{currentStep >= 3 ? 'step-active' : ''}}"></view>
+        <view class="step-item">
+          <view class="step-dot {{currentStep >= 3 ? 'step-active' : ''}}">3</view>
+          <text class="step-label">调料</text>
+        </view>
+        <view class="step-line {{currentStep >= 4 ? 'step-active' : ''}}"></view>
+        <view class="step-item">
+          <view class="step-dot {{currentStep >= 4 ? 'step-active' : ''}}">4</view>
+          <text class="step-label">步骤</text>
+        </view>
+        <view class="step-line {{currentStep >= 5 ? 'step-active' : ''}}"></view>
+        <view class="step-item">
+          <view class="step-dot {{currentStep >= 5 ? 'step-active' : ''}}">5</view>
+          <text class="step-label">信息</text>
+        </view>
+        <view class="step-line {{currentStep >= 6 ? 'step-active' : ''}}"></view>
+        <view class="step-item">
+          <view class="step-dot {{currentStep >= 6 ? 'step-active' : ''}}">6</view>
+          <text class="step-label">预览</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 步骤内容区域 -->
+    <scroll-view class="step-content" scroll-y style="padding-top:{{contentPaddingTop}}px; padding-bottom:{{contentPaddingBottom}}px;">
+      <!-- Step 1: 选择菜品 -->
+      <view class="step-panel" wx:if="{{currentStep === 1}}">
+        <view class="step-title">选择菜品</view>
+
+        <!-- 已选菜品展示区 -->
+        <view class="selected-area">
+          <view class="dish-selected-card" wx:if="{{selectedDishName || manualDishName}}">
+            <view class="dish-selected-info">
+              <text class="dish-selected-name">{{selectedDishName || manualDishName}}</text>
+              <text class="dish-selected-tag" wx:if="{{selectedDishId}}">已有菜品</text>
+              <text class="dish-selected-tag dish-selected-tag--manual" wx:else>手动输入</text>
+            </view>
+            <text class="dish-selected-remove" bindtap="clearSelectedDish">✕</text>
+          </view>
+          <view class="selected-empty" wx:else>
+            <view class="selected-empty-illust">
+              <text class="selected-empty-icon">🍽️</text>
+              <view class="selected-empty-decor selected-empty-decor--1">🥘</view>
+              <view class="selected-empty-decor selected-empty-decor--2">🥢</view>
+              <view class="selected-empty-decor selected-empty-decor--3">✨</view>
+            </view>
+            <text class="selected-empty-title">暂未选择菜品</text>
+            <text class="selected-empty-desc">点击下方按钮选择菜品</text>
+          </view>
+        </view>
+
+        <!-- 菜品封面（选择菜品后显示） -->
+        <view class="cover-section" wx:if="{{selectedDishName || manualDishName}}">
+          <text class="cover-label">菜品封面(可选)</text>
+          <view class="cover-area" wx:if="{{coverImage}}" bindtap="previewCoverImage">
+            <image class="cover-preview" src="{{coverImage}}" mode="aspectFill" />
+            <view class="cover-remove" catchtap="removeCoverImage">✕</view>
+          </view>
+          <view class="cover-add" wx:else bindtap="chooseCoverImage">
+            <text class="cover-add-icon">📷</text>
+            <text class="cover-add-text">拍照或上传封面图</text>
+          </view>
+        </view>
+
+        <!-- 底部固定按钮 -->
+        <view class="add-trigger-btn" bindtap="showDishPicker">
+          <text class="add-trigger-icon">+</text>
+          <text class="add-trigger-text">选择菜品</text>
+        </view>
+      </view>
+
+      <!-- Step 2: 食材准备 -->
+      <view class="step-panel" wx:if="{{currentStep === 2}}">
+        <view class="step-title">食材准备</view>
+
+        <!-- 已选食材展示区（撑满剩余高度） -->
+        <view class="selected-area">
+          <view class="selected-header" wx:if="{{ingredients.length > 0}}">
+            <text class="selected-count">已选 {{ingredients.length}} 种食材</text>
+            <text class="selected-clear-all" bindtap="clearAllIngredients">全部删除</text>
+          </view>
+          <scroll-view class="selected-tags-wrap" scroll-y wx:if="{{ingredients.length > 0}}">
+            <view class="selected-tags">
+              <view class="tag-chip" wx:for="{{ingredients}}" wx:key="index">
+                <text class="tag-text">{{item.name}}</text>
+                <text class="tag-amount">{{item.amount}}</text>
+                <text class="tag-remove" bindtap="removeIngredient" data-index="{{index}}">✕</text>
+              </view>
+            </view>
+          </scroll-view>
+          <view class="selected-empty" wx:else>
+            <view class="selected-empty-illust">
+              <text class="selected-empty-icon">🥬</text>
+              <view class="selected-empty-decor selected-empty-decor--1">🥕</view>
+              <view class="selected-empty-decor selected-empty-decor--2">🍅</view>
+              <view class="selected-empty-decor selected-empty-decor--3">✨</view>
+            </view>
+            <text class="selected-empty-title">暂未选择食材</text>
+            <text class="selected-empty-desc">点击下方按钮添加食材</text>
+          </view>
+        </view>
+
+        <!-- 底部固定按钮 -->
+        <view class="add-trigger-btn" bindtap="showIngredientPicker">
+          <text class="add-trigger-icon">+</text>
+          <text class="add-trigger-text">选择食材</text>
+        </view>
+      </view>
+
+      <!-- Step 3: 调料准备 -->
+      <view class="step-panel" wx:if="{{currentStep === 3}}">
+        <view class="step-title">调料准备</view>
+
+        <!-- 已选调料展示区（撑满剩余高度） -->
+        <view class="selected-area">
+          <view class="selected-header" wx:if="{{seasonings.length > 0}}">
+            <text class="selected-count">已选 {{seasonings.length}} 种调料</text>
+            <text class="selected-clear-all" bindtap="clearAllSeasonings">全部删除</text>
+          </view>
+          <scroll-view class="selected-tags-wrap" scroll-y wx:if="{{seasonings.length > 0}}">
+            <view class="selected-tags">
+              <view class="tag-chip" wx:for="{{seasonings}}" wx:key="index">
+                <text class="tag-text">{{item.name}}</text>
+                <text class="tag-amount">{{item.amount}}</text>
+                <text class="tag-remove" bindtap="removeSeasoning" data-index="{{index}}">✕</text>
+              </view>
+            </view>
+          </scroll-view>
+          <view class="selected-empty" wx:else>
+            <view class="selected-empty-illust">
+              <text class="selected-empty-icon">🧂</text>
+              <view class="selected-empty-decor selected-empty-decor--1">🫙</view>
+              <view class="selected-empty-decor selected-empty-decor--2">🌶️</view>
+              <view class="selected-empty-decor selected-empty-decor--3">✨</view>
+            </view>
+            <text class="selected-empty-title">暂未选择调料</text>
+            <text class="selected-empty-desc">点击下方按钮添加调料</text>
+          </view>
+        </view>
+
+        <!-- 底部固定按钮 -->
+        <view class="add-trigger-btn" bindtap="showSeasoningPicker">
+          <text class="add-trigger-icon">+</text>
+          <text class="add-trigger-text">选择调料</text>
+        </view>
+      </view>
+
+      <!-- Step 4: 烹饪步骤 -->
+      <view class="step-panel" wx:if="{{currentStep === 4}}">
+        <view class="step-title">烹饪步骤</view>
+
+        <!-- 步骤展示区（虚线框，撑满剩余高度） -->
+        <view class="selected-area">
+          <scroll-view class="steps-scroll" scroll-y>
+            <view class="steps-editor">
+              <view class="step-editor-item" wx:for="{{steps}}" wx:key="index">
+                <view class="step-editor-header">
+                  <text class="step-editor-number">步骤 {{index + 1}}</text>
+                  <view class="step-editor-actions">
+                    <view class="step-action" wx:if="{{index > 0}}" bindtap="moveStepUp" data-index="{{index}}">↑</view>
+                    <view class="step-action" wx:if="{{index < steps.length - 1}}" bindtap="moveStepDown" data-index="{{index}}">↓</view>
+                    <view class="step-action step-action-delete" bindtap="removeStep" data-index="{{index}}">✕</view>
+                  </view>
+                </view>
+
+                <textarea class="step-textarea" placeholder="描述这一步骤..." value="{{item.text}}" bindinput="onStepTextInput" data-index="{{index}}" />
+
+                <view class="step-options">
+                  <view class="step-option" bindtap="addStepImage" data-index="{{index}}">
+                    <text class="option-icon">📷</text>
+                    <text class="option-text">{{item.image ? '已添加图片' : '添加图片'}}</text>
+                  </view>
+                  <view class="step-option" bindtap="showTimerPicker" data-index="{{index}}">
+                    <text class="option-icon">⏱</text>
+                    <text class="option-text">{{item.timer ? utils.formatTime(item.timer) : '设置计时器'}}</text>
+                  </view>
+                </view>
+
+                <view class="step-image-wrap" wx:if="{{item.image}}">
+                  <image class="step-preview-image" src="{{item.image}}" mode="aspectFill" bindtap="previewStepImage" data-index="{{index}}" />
+                  <view class="step-image-remove" catchtap="removeStepImage" data-index="{{index}}">✕</view>
+                </view>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+
+        <!-- 底部固定按钮 -->
+        <view class="add-trigger-btn" bindtap="addStep">
+          <text class="add-trigger-icon">+</text>
+          <text class="add-trigger-text">添加步骤</text>
+        </view>
+      </view>
+
+      <!-- Step 5: 基本信息 -->
+      <view class="step-panel" wx:if="{{currentStep === 5}}">
+        <view class="step-title">基本信息</view>
+        
+        <view class="form-group">
+          <view class="form-item">
+            <text class="form-label">难度</text>
+            <view class="difficulty-selector">
+              <view class="diff-star {{difficulty >= 1 ? 'diff-star-active' : ''}}" bindtap="setDifficulty" data-value="1">★</view>
+              <view class="diff-star {{difficulty >= 2 ? 'diff-star-active' : ''}}" bindtap="setDifficulty" data-value="2">★</view>
+              <view class="diff-star {{difficulty >= 3 ? 'diff-star-active' : ''}}" bindtap="setDifficulty" data-value="3">★</view>
+            </view>
+          </view>
+
+          <view class="form-item">
+            <text class="form-label">准备时间（分钟）</text>
+            <input class="form-input" type="number" placeholder="0" value="{{prepTime}}" bindinput="onPrepTimeInput" />
+          </view>
+
+          <view class="form-item">
+            <text class="form-label">烹饪时间（分钟）</text>
+            <input class="form-input" type="number" placeholder="0" value="{{cookTime}}" bindinput="onCookTimeInput" />
+          </view>
+
+          <view class="form-item">
+            <text class="form-label">几人份</text>
+            <input class="form-input" type="number" placeholder="1" value="{{servings}}" bindinput="onServingsInput" />
+          </view>
+
+          <view class="form-item">
+            <text class="form-label">小贴士（可选）</text>
+            <textarea class="form-textarea" placeholder="分享一些烹饪小技巧..." value="{{tips}}" bindinput="onTipsInput" />
+          </view>
+        </view>
+      </view>
+
+      <!-- Step 6: 预览确认 -->
+      <view class="step-panel" wx:if="{{currentStep === 6}}">
+        <view class="step-title">预览确认</view>
+        
+        <view class="preview-section">
+          <view class="preview-header">
+            <text class="preview-name">{{dishName}}</text>
+            <view class="preview-meta">
+              <text class="preview-difficulty">
+                <text wx:for="{{[1,2,3]}}" wx:key="*this" class="preview-star {{item <= difficulty ? 'preview-star-active' : ''}}">★</text>
+              </text>
+              <text class="preview-time">准备{{prepTime}}分钟 | 烹饪{{cookTime}}分钟</text>
+              <text class="preview-servings" wx:if="{{servings}}">{{servings}}人份</text>
+            </view>
+          </view>
+
+          <view class="preview-card" wx:if="{{ingredients.length > 0}}">
+            <text class="preview-card-title">🥬 食材</text>
+            <view class="preview-items">
+              <text class="preview-item" wx:for="{{ingredients}}" wx:key="index">{{item.name}} {{item.amount}}</text>
+            </view>
+          </view>
+
+          <view class="preview-card" wx:if="{{seasonings.length > 0}}">
+            <text class="preview-card-title">🧂 调料</text>
+            <view class="preview-items">
+              <text class="preview-item" wx:for="{{seasonings}}" wx:key="index">{{item.name}} {{item.amount}}</text>
+            </view>
+          </view>
+
+          <view class="preview-card" wx:if="{{steps.length > 0}}">
+            <text class="preview-card-title">👨‍🍳 步骤</text>
+            <view class="preview-steps">
+              <view class="preview-step" wx:for="{{steps}}" wx:key="index">
+                <view class="preview-step-header">
+                  <text class="preview-step-num">{{index + 1}}</text>
+                  <text class="preview-step-timer" wx:if="{{item.timer > 0}}">⏱ {{utils.formatTime(item.timer)}}</text>
+                </view>
+                <text class="preview-step-text">{{item.text}}</text>
+                <image class="preview-step-img" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+              </view>
+            </view>
+          </view>
+
+          <view class="preview-card" wx:if="{{tips}}">
+            <text class="preview-card-title">💡 小贴士</text>
+            <text class="preview-tips">{{tips}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 底部按钮 -->
+    <view class="bottom-actions">
+      <button class="action-btn prev-btn" wx:if="{{currentStep > 1}}" bindtap="prevStep">上一步</button>
+      <button class="action-btn next-btn" wx:if="{{currentStep < 6}}" bindtap="nextStep">下一步</button>
+      <button class="action-btn submit-btn" wx:if="{{currentStep === 6}}" disabled="{{submitting}}" bindtap="submitRecipe">
+        {{submitting ? (editMode ? '更新中...' : '发布中...') : (editMode ? '确认更新' : '确认发布')}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 菜品选择弹窗 -->
+  <view class="picker-modal" wx:if="{{showDishModal}}" bindtap="hideDishPicker">
+    <view class="picker-content" catchtap>
+      <view class="picker-header">
+        <view class="picker-title-wrap">
+          <text class="picker-title">选择菜品</text>
+          <text class="picker-count" wx:if="{{selectedDishName || manualDishName}}">已选择</text>
+        </view>
+        <view class="picker-close" bindtap="hideDishPicker">✕</view>
+      </view>
+
+      <!-- Tab 切换 -->
+      <view class="picker-tabs">
+        <view class="picker-tab {{dishTab === 'existing' ? 'picker-tab--active' : ''}}" bindtap="switchDishTab" data-tab="existing">已有菜品</view>
+        <view class="picker-tab {{dishTab === 'manual' ? 'picker-tab--active' : ''}}" bindtap="switchDishTab" data-tab="manual">手动输入</view>
+      </view>
+
+      <!-- 搜索（固定） -->
+      <view class="picker-search" wx:if="{{dishTab === 'existing'}}">
+        <text class="picker-search-icon">🔍</text>
+        <input class="picker-search-input" placeholder="搜索菜品..." value="{{dishSearchKey}}" bindinput="onDishSearch" />
+        <text class="picker-search-clear" wx:if="{{dishSearchKey}}" bindtap="clearDishSearch">✕</text>
+      </view>
+
+      <!-- 已有菜品列表（可滚动） -->
+      <view class="picker-body" wx:if="{{dishTab === 'existing'}}">
+        <scroll-view class="picker-grid-area" scroll-y>
+          <view class="dish-picker-list">
+            <view class="dish-picker-item {{selectedDishId === item._id ? 'dish-picker-item--selected' : ''}}"
+                  wx:for="{{filteredDishes}}" wx:key="_id"
+                  bindtap="selectDish"
+                  data-id="{{item._id}}"
+                  data-name="{{item.name}}">
+              <view class="dish-picker-info">
+                <text class="dish-picker-name">{{item.name}}</text>
+                <text class="dish-picker-cat" wx:if="{{item.categoryName}}">{{item.categoryName}}</text>
+              </view>
+              <text class="dish-picker-check" wx:if="{{selectedDishId === item._id}}">✓</text>
+            </view>
+          </view>
+          <!-- 空状态 -->
+          <view class="picker-search-empty" wx:if="{{filteredDishes.length === 0}}">
+            <text class="picker-search-empty-icon">🍽️</text>
+            <text class="picker-search-empty-title">{{dishSearchKey ? '未找到"' + dishSearchKey + '"' : '暂无菜品'}}</text>
+            <text class="picker-search-empty-desc">{{dishSearchKey ? '换个关键词试试' : '请先在菜品页添加菜品'}}</text>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 手动输入 -->
+      <view class="picker-body" wx:else>
+        <view class="manual-form">
+          <view class="manual-field">
+            <text class="manual-label">菜谱名称</text>
+            <input class="manual-input" placeholder="请输入菜谱名称" value="{{manualDishName}}" bindinput="onManualDishNameInput" />
+          </view>
+          <view class="manual-add-btn" bindtap="confirmManualDish">确认</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 食材选择弹窗 -->
+  <view class="picker-modal" wx:if="{{showIngredientModal}}" bindtap="hideIngredientPicker">
+    <view class="picker-content" catchtap>
+      <view class="picker-header">
+        <view class="picker-title-wrap">
+          <text class="picker-title">选择食材</text>
+          <text class="picker-count" wx:if="{{ingredients.length > 0}}">已选 {{ingredients.length}} 项</text>
+        </view>
+        <view class="picker-close" bindtap="hideIngredientPicker">✕</view>
+      </view>
+
+      <!-- Tab 切换 -->
+      <view class="picker-tabs">
+        <view class="picker-tab {{ingredientTab === 'preset' ? 'picker-tab--active' : ''}}" bindtap="switchIngredientTab" data-tab="preset">选择食材</view>
+        <view class="picker-tab {{ingredientTab === 'manual' ? 'picker-tab--active' : ''}}" bindtap="switchIngredientTab" data-tab="manual">手动输入</view>
+      </view>
+
+      <!-- 搜索（固定，仅预设tab显示） -->
+      <view class="picker-search" wx:if="{{ingredientTab === 'preset'}}">
+        <text class="picker-search-icon">🔍</text>
+        <input class="picker-search-input" placeholder="搜索食材..." value="{{ingredientSearchKey}}" bindinput="onIngredientSearch" />
+        <text class="picker-search-clear" wx:if="{{ingredientSearchKey}}" bindtap="clearIngredientSearch">✕</text>
+      </view>
+
+      <!-- 预设选择 -->
+      <view class="picker-body" wx:if="{{ingredientTab === 'preset'}}">
+        <!-- 搜索结果（跨分类，无侧栏） -->
+        <view class="picker-search-results" wx:if="{{ingredientSearchKey}}">
+          <scroll-view class="picker-grid-area" scroll-y>
+            <view class="picker-grid">
+              <view class="picker-chip {{utils.includes(ingredients, item, 'name') ? 'picker-chip--selected' : ''}}"
+                    wx:for="{{searchResults}}" wx:key="*this"
+                    bindtap="toggleIngredient" data-name="{{item}}">
+                <text class="picker-chip-text">{{item}}</text>
+                <text class="picker-chip-check" wx:if="{{utils.includes(ingredients, item, 'name')}}">✓</text>
+              </view>
+            </view>
+            <!-- 无搜索结果 -->
+            <view class="picker-search-empty" wx:if="{{searchResults.length === 0}}">
+              <text class="picker-search-empty-icon">🔍</text>
+              <text class="picker-search-empty-title">未找到"{{ingredientSearchKey}}"</text>
+              <text class="picker-search-empty-desc">换个关键词试试，或切换到手动输入</text>
+            </view>
+          </scroll-view>
+        </view>
+
+        <!-- 分类 + 网格（无搜索时） -->
+        <view class="picker-main" wx:else>
+          <scroll-view class="picker-sidebar" scroll-y>
+            <view class="sidebar-item {{currentCategory === item ? 'sidebar-item--active' : ''}}"
+                  wx:for="{{ingredientCategories}}" wx:key="*this"
+                  bindtap="switchIngredientCategory" data-key="{{item}}">
+              {{item}}
+            </view>
+          </scroll-view>
+          <scroll-view class="picker-grid-area" scroll-y>
+            <view class="picker-grid">
+              <view class="picker-chip {{utils.includes(ingredients, item, 'name') ? 'picker-chip--selected' : ''}}"
+                    wx:for="{{currentPresets}}" wx:key="*this"
+                    bindtap="toggleIngredient" data-name="{{item}}">
+                <text class="picker-chip-text">{{item}}</text>
+                <text class="picker-chip-check" wx:if="{{utils.includes(ingredients, item, 'name')}}">✓</text>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+
+      <!-- 手动输入 -->
+      <view class="picker-body" wx:else>
+        <view class="manual-form">
+          <view class="manual-field">
+            <text class="manual-label">食材名称</text>
+            <input class="manual-input" placeholder="请输入食材名称" value="{{customIngredientName}}" bindinput="onCustomIngredientName" />
+          </view>
+          <view class="manual-field">
+            <text class="manual-label">用量</text>
+            <input class="manual-input" placeholder="如：适量、200g" value="{{customIngredientAmount}}" bindinput="onCustomIngredientAmount" />
+          </view>
+          <view class="manual-add-btn" bindtap="addCustomIngredient">添加</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 调料选择弹窗 -->
+  <view class="picker-modal" wx:if="{{showSeasoningModal}}" bindtap="hideSeasoningPicker">
+    <view class="picker-content" catchtap>
+      <view class="picker-header">
+        <view class="picker-title-wrap">
+          <text class="picker-title">选择调料</text>
+          <text class="picker-count" wx:if="{{seasonings.length > 0}}">已选 {{seasonings.length}} 项</text>
+        </view>
+        <view class="picker-close" bindtap="hideSeasoningPicker">✕</view>
+      </view>
+
+      <!-- Tab 切换 -->
+      <view class="picker-tabs">
+        <view class="picker-tab {{seasoningTab === 'preset' ? 'picker-tab--active' : ''}}" bindtap="switchSeasoningTab" data-tab="preset">选择调料</view>
+        <view class="picker-tab {{seasoningTab === 'manual' ? 'picker-tab--active' : ''}}" bindtap="switchSeasoningTab" data-tab="manual">手动输入</view>
+      </view>
+
+      <!-- 搜索（固定，仅预设tab显示） -->
+      <view class="picker-search" wx:if="{{seasoningTab === 'preset'}}">
+        <text class="picker-search-icon">🔍</text>
+        <input class="picker-search-input" placeholder="搜索调料..." value="{{seasoningSearchKey}}" bindinput="onSeasoningSearch" />
+        <text class="picker-search-clear" wx:if="{{seasoningSearchKey}}" bindtap="clearSeasoningSearch">✕</text>
+      </view>
+
+      <!-- 预设选择 -->
+      <view class="picker-body" wx:if="{{seasoningTab === 'preset'}}">
+        <!-- 搜索结果（跨分类，无侧栏） -->
+        <view class="picker-search-results" wx:if="{{seasoningSearchKey}}">
+          <scroll-view class="picker-grid-area" scroll-y>
+            <view class="picker-grid">
+              <view class="picker-chip {{utils.includes(seasonings, item, 'name') ? 'picker-chip--selected' : ''}}"
+                    wx:for="{{seasoningSearchResults}}" wx:key="*this"
+                    bindtap="toggleSeasoning" data-name="{{item}}">
+                <text class="picker-chip-text">{{item}}</text>
+                <text class="picker-chip-check" wx:if="{{utils.includes(seasonings, item, 'name')}}">✓</text>
+              </view>
+            </view>
+            <!-- 无搜索结果 -->
+            <view class="picker-search-empty" wx:if="{{seasoningSearchResults.length === 0}}">
+              <text class="picker-search-empty-icon">🔍</text>
+              <text class="picker-search-empty-title">未找到"{{seasoningSearchKey}}"</text>
+              <text class="picker-search-empty-desc">换个关键词试试，或切换到手动输入</text>
+            </view>
+          </scroll-view>
+        </view>
+
+        <!-- 分类 + 网格（无搜索时） -->
+        <view class="picker-main" wx:else>
+          <scroll-view class="picker-sidebar" scroll-y>
+            <view class="sidebar-item {{currentSeasoningCategory === item ? 'sidebar-item--active' : ''}}"
+                  wx:for="{{seasoningCategories}}" wx:key="*this"
+                  bindtap="switchSeasoningCategory" data-key="{{item}}">
+              {{item}}
+            </view>
+          </scroll-view>
+          <scroll-view class="picker-grid-area" scroll-y>
+            <view class="picker-grid">
+              <view class="picker-chip {{utils.includes(seasonings, item, 'name') ? 'picker-chip--selected' : ''}}"
+                    wx:for="{{currentSeasoningPresets}}" wx:key="*this"
+                    bindtap="toggleSeasoning" data-name="{{item}}">
+                <text class="picker-chip-text">{{item}}</text>
+                <text class="picker-chip-check" wx:if="{{utils.includes(seasonings, item, 'name')}}">✓</text>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+
+      <!-- 手动输入 -->
+      <view class="picker-body" wx:else>
+        <view class="manual-form">
+          <view class="manual-field">
+            <text class="manual-label">调料名称</text>
+            <input class="manual-input" placeholder="请输入调料名称" value="{{customSeasoningName}}" bindinput="onCustomSeasoningName" />
+          </view>
+          <view class="manual-field">
+            <text class="manual-label">用量</text>
+            <input class="manual-input" placeholder="如：适量、1勺" value="{{customSeasoningAmount}}" bindinput="onCustomSeasoningAmount" />
+          </view>
+          <view class="manual-add-btn" bindtap="addCustomSeasoning">添加</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 计时器选择弹窗 -->
+  <view class="picker-modal" wx:if="{{showTimerModal}}" bindtap="hideTimerPicker">
+    <view class="picker-content" catchtap>
+      <view class="picker-header">
+        <text class="picker-title">设置计时器</text>
+        <view class="picker-close" bindtap="hideTimerPicker">✕</view>
+      </view>
+      
+      <view class="timer-picker">
+        <picker-view class="timer-picker-view" value="{{timerPickerValue}}" bindchange="onTimerPickerChange">
+          <picker-view-column>
+            <view class="picker-item" wx:for="{{timerMinutes}}" wx:key="*this">{{item}}分钟</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+
+      <button class="confirm-btn" bindtap="confirmTimer">确认</button>
+    </view>
+  </view>
+</view>

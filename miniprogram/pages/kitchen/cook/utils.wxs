@@ -1,0 +1,16 @@
+/**
+ * WXS 工具模块 - 供 cook.wxml 模板使用
+ */
+var utils = {
+  /**
+   * 将秒数格式化为 mm:ss
+   */
+  formatTime: function(seconds) {
+    if (!seconds || seconds <= 0) return '00:00'
+    var mins = Math.floor(seconds / 60)
+    var secs = seconds % 60
+    return (mins < 10 ? '0' + mins : '' + mins) + ':' + (secs < 10 ? '0' + secs : '' + secs)
+  }
+}
+
+module.exports = utils

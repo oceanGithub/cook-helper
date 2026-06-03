@@ -5,6 +5,8 @@ page {
 }
 
 .mine-page {
+  position: relative;
+  overflow: hidden;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -63,4 +65,32 @@ page {
   box-sizing: border-box;
   display: flex;
   justify-content: center;
+}
+
+// ====== 浮动装饰 emoji ======
+.mine-float {
+  position: absolute;
+  font-size: 48rpx;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.mine-float--1 { top: 15%; left: 8%; animation: mine-float-a 4.5s ease-in-out infinite; }
+.mine-float--2 { top: 10%; right: 10%; animation: mine-float-b 5s ease-in-out 0.8s infinite; }
+.mine-float--3 { top: 38%; left: 5%; animation: mine-float-c 4s ease-in-out 1.5s infinite; font-size: 36rpx; }
+.mine-float--4 { top: 32%; right: 6%; animation: mine-float-a 5.5s ease-in-out 0.3s infinite; font-size: 56rpx; }
+.mine-float--5 { bottom: 28%; left: 7%; animation: mine-float-b 4.8s ease-in-out 2s infinite; font-size: 40rpx; }
+.mine-float--6 { bottom: 32%; right: 8%; animation: mine-float-c 5.2s ease-in-out 1.2s infinite; }
+
+@keyframes mine-float-a {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-18rpx) rotate(5deg); }
+}
+@keyframes mine-float-b {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-24rpx) rotate(-4deg); }
+}
+@keyframes mine-float-c {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14rpx) rotate(3deg); }
 }

@@ -1,6 +1,100 @@
-<view class="plan-placeholder">
-  <view class="placeholder-body">
-    <text class="placeholder-icon">🍳</text>
-    <text class="placeholder-text">功能开发中...</text>
+<view class="kitchen-page">
+
+  <!-- 顶部搜索+筛选模块（固定） -->
+  <view class="top-bar" style="padding-top:{{searchBarTop}}px">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索菜谱..." value="{{searchKey}}" bindinput="onSearch" bindconfirm="onSearch" />
+      <text class="search-clear" wx:if="{{searchKey}}" bindtap="onClearSearch">✕</text>
+    </view>
+    <view class="diff-filter">
+      <view class="diff-tag {{diffFilter === 0 ? 'diff-tag--active' : ''}}" data-val="0" bindtap="onDiffFilter">全部</view>
+      <view class="diff-tag {{diffFilter === 1 ? 'diff-tag--active' : ''}}" data-val="1" bindtap="onDiffFilter">🔥 简单</view>
+      <view class="diff-tag {{diffFilter === 2 ? 'diff-tag--active' : ''}}" data-val="2" bindtap="onDiffFilter">🔥🔥 中等</view>
+      <view class="diff-tag {{diffFilter === 3 ? 'diff-tag--active' : ''}}" data-val="3" bindtap="onDiffFilter">🔥🔥🔥 困难</view>
+    </view>
+  </view>
+
+  <!-- 菜谱滚动列表 -->
+  <scroll-view class="recipe-list" scroll-y style="padding-top:{{topBarHeight}}px"
+    bindscrolltolower="onReachBottom"
+    refresher-enabled
+    bindrefresherrefresh="onPullDown"
+    refresher-triggered="{{refreshing}}">
+
+    <!-- 菜谱卡片 -->
+    <view class="recipe-card" wx:for="{{recipes}}" wx:key="_id" data-id="{{item._id}}" bindtap="goDetail">
+      <view class="recipe-card-cover">
+        <image class="recipe-card-img" wx:if="{{item.coverImage}}" src="{{item.coverImage}}" mode="aspectFill" />
+        <view class="recipe-card-img-placeholder" wx:else>
+          <text class="placeholder-icon">📖</text>
+        </view>
+        <view class="recipe-card-diff" wx:if="{{item.difficulty}}">
+          <text wx:for="{{[1,2,3]}}" wx:for-item="star" wx:key="*this" class="diff-star {{star <= item.difficulty ? 'diff-star--active' : ''}}">🔥</text>
+        </view>
+      </view>
+      <view class="recipe-card-info">
+        <text class="recipe-card-name">{{item.dishName}}</text>
+        <view class="recipe-card-meta">
+          <view class="meta-time">
+            <text class="meta-icon">⏱</text>
+            <text class="meta-text">{{item.prepTime + item.cookTime}}分钟</text>
+          </view>
+          <view class="meta-stats">
+            <text class="stat-item">❤️ {{item.likeCount || 0}}</text>
+            <text class="stat-item">👨‍🍳 {{item.tryCount || 0}}</text>
+          </view>
+        </view>
+        <view class="recipe-card-author" wx:if="{{item.createdByName}}">
+          <image class="author-avatar" wx:if="{{item.createdByAvatar}}" src="{{item.createdByAvatar}}" mode="aspectFill" />
+          <view class="author-avatar-placeholder" wx:else>
+            <text>{{item.createdByName[0] || '?'}}</text>
+          </view>
+          <text class="author-name">{{item.createdByName}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="load-more" wx:if="{{loadingMore}}">
+      <view class="loading-spinner-small"></view>
+      <text class="load-more-text">加载中...</text>
+    </view>
+    <view class="load-more" wx:if="{{noMore && recipes.length > 0 && hasLoadedMore}}">
+      <view class="load-more-line"></view>
+      <text class="load-more-text">— 没有更多了 —</text>
+      <view class="load-more-line"></view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{showEmpty}}">
+      <view class="empty-illustration">
+        <text class="empty-icon">📖</text>
+        <view class="empty-decor empty-decor--1">🍳</view>
+        <view class="empty-decor empty-decor--2">🥢</view>
+        <view class="empty-decor empty-decor--3">✨</view>
+      </view>
+      <text class="empty-title">还没有菜谱</text>
+      <text class="empty-desc">快来发布第一份菜谱，分享你的拿手好菜吧！</text>
+      <view class="empty-btn" bindtap="goPublish">
+        <text class="empty-btn-icon">+</text>
+        <text class="empty-btn-text">发布菜谱</text>
+      </view>
+    </view>
+
+    <!-- 加载中状态 -->
+    <view class="loading-state" wx:if="{{loading && recipes.length === 0}}">
+      <view class="loading-spinner"></view>
+      <text class="loading-text">加载菜谱中...</text>
+    </view>
+  </scroll-view>
+
+  <!-- 浮动发布按钮（有菜谱时才显示） -->
+  <view class="fab-container" wx:if="{{recipes.length > 0 && !showEmpty}}">
+    <view class="fab-item fab-publish" bindtap="goPublish">
+      <text class="fab-icon">+</text>
+      <text class="fab-label">发布</text>
+    </view>
+    <view class="fab-pulse"></view>
   </view>
 </view>

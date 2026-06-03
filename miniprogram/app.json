@@ -10,7 +10,11 @@
     "pages/notify/notify",
     "pages/calendar/calendar",
     "pages/mine/mine",
-    "pages/mine/profile/profile"
+    "pages/mine/profile/profile",
+    "pages/kitchen/publish/publish",
+    "pages/kitchen/detail/detail",
+    "pages/kitchen/cook/cook",
+    "pages/kitchen/try/try"
   ],
   "window": {
     "navigationBarTextStyle": "black",
@@ -24,7 +28,7 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "菜品",
+        "text": "食堂",
         "iconPath": "assets/icons/home.png",
         "selectedIconPath": "assets/icons/home-active.png"
       },

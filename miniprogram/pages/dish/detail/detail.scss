@@ -527,3 +527,101 @@ page {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50% { transform: translateY(-14rpx) rotate(6deg); }
 }
+// ====== 相关菜谱区域 ======
+.related-recipes {
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 28rpx 32rpx;
+  box-shadow: 0 8rpx 40rpx rgba(255, 107, 53, 0.08);
+  margin-bottom: 20rpx;
+  animation: cardSlideUp 0.5s ease both;
+  animation-delay: 0.2s;
+}
+
+.related-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.recipes-scroll {
+  white-space: nowrap;
+}
+
+.recipe-card {
+  display: inline-block;
+  width: 280rpx;
+  margin-right: 20rpx;
+  vertical-align: top;
+  background: #f8f9fa;
+  border-radius: 20rpx;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.recipe-cover {
+  width: 100%;
+  height: 180rpx;
+}
+
+.recipe-cover-placeholder {
+  width: 100%;
+  height: 180rpx;
+  background: linear-gradient(135deg, #FFF5EE 0%, #FFECD2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recipe-placeholder-icon {
+  font-size: 60rpx;
+  opacity: 0.6;
+}
+
+.recipe-info {
+  padding: 16rpx 20rpx;
+}
+
+.recipe-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 10rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.recipe-difficulty {
+  display: flex;
+  gap: 4rpx;
+}
+
+.recipe-star {
+  font-size: 22rpx;
+  color: #ddd;
+}
+
+.recipe-star-active {
+  color: #FF6B35;
+}
+
+.recipe-stats {
+  font-size: 22rpx;
+  color: #999;
+}

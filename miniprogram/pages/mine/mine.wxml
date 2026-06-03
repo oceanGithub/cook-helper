@@ -1,4 +1,12 @@
 <view class="mine-page">
+  <!-- 浮动装饰 -->
+  <text class="mine-float mine-float--1">⭐</text>
+  <text class="mine-float mine-float--2">🎵</text>
+  <text class="mine-float mine-float--3">☕</text>
+  <text class="mine-float mine-float--4">🌸</text>
+  <text class="mine-float mine-float--5">🧋</text>
+  <text class="mine-float mine-float--6">💫</text>
+
   <!-- 头像卡片 -->
   <view class="profile-card">
     <image class="profile-avatar" src="{{userInfo.avatarUrl}}" mode="cover" wx:if="{{userInfo}}"></image>

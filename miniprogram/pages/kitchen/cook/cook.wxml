@@ -1,0 +1,61 @@
+<wxs src="./utils.wxs" module="utils" />
+<view class="cook-page">
+
+  <view class="content" >
+    <!-- 进度显示 -->
+    <view class="progress-bar">
+      <text class="progress-text">第 {{currentIndex + 1}} / 共 {{steps.length}} 步</text>
+      <view class="progress-track">
+        <view class="progress-fill" style="width: {{(currentIndex + 1) / steps.length * 100}}%"></view>
+      </view>
+    </view>
+
+    <!-- 步骤内容区域 -->
+    <view class="step-content" wx:if="{{steps.length > 0}}">
+      <!-- 步骤图片 -->
+      <view class="step-image-area" wx:if="{{steps[currentIndex].image}}">
+        <image class="step-image" src="{{steps[currentIndex].image}}" mode="aspectFill" />
+      </view>
+
+      <!-- 步骤文字 -->
+      <view class="step-text-area">
+        <text class="step-text">{{steps[currentIndex].text}}</text>
+      </view>
+
+      <!-- 计时器按钮 -->
+      <view class="timer-area" wx:if="{{steps[currentIndex].timer > 0}}">
+        <button class="timer-btn" bindtap="toggleTimer">
+          {{timerRunning ? '⏸ 暂停计时' : '⏱ 启动计时'}}
+        </button>
+        <text class="timer-display" wx:if="{{timerSeconds > 0}}">
+          {{utils.formatTime(timerSeconds)}}
+        </text>
+      </view>
+    </view>
+
+    <!-- 操作按钮区域 -->
+    <!-- 只有1步：完成 + 去打卡 -->
+    <view class="action-area" wx:if="{{steps.length === 1}}">
+      <button class="action-btn done-btn" bindtap="goBack">完成</button>
+      <button class="action-btn finish-btn" bindtap="finishCook">🎉 去打卡</button>
+    </view>
+
+    <!-- 第一步（多步）：仅下一步 -->
+    <view class="action-area" wx:elif="{{currentIndex === 0}}">
+      <button class="action-btn next-btn" bindtap="nextStep">下一步</button>
+    </view>
+
+    <!-- 最后一步（多步）：上一步 + 完成 + 去打卡 -->
+    <view class="action-area" wx:elif="{{currentIndex === steps.length - 1}}">
+      <button class="action-btn prev-btn" bindtap="prevStep">上一步</button>
+      <button class="action-btn done-btn" bindtap="goBack">完成</button>
+      <button class="action-btn finish-btn" bindtap="finishCook">🎉 去打卡</button>
+    </view>
+
+    <!-- 中间步骤（至少3步）：上一步 + 下一步 -->
+    <view class="action-area" wx:else>
+      <button class="action-btn prev-btn" bindtap="prevStep">上一步</button>
+      <button class="action-btn next-btn" bindtap="nextStep">下一步</button>
+    </view>
+  </view>
+</view>

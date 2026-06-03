@@ -107,7 +107,12 @@
 
       <!-- 空状态 -->
       <view class="empty-dishes" wx:else>
-        <text class="empty-icon">🍽️</text>
+        <view class="empty-illustration">
+          <text class="empty-main-icon">🍽️</text>
+          <view class="empty-decor empty-decor--1">🥘</view>
+          <view class="empty-decor empty-decor--2">🥢</view>
+          <view class="empty-decor empty-decor--3">✨</view>
+        </view>
         <text class="empty-text">还没有菜品</text>
         <text class="empty-hint">点击右下角 + 录入菜品</text>
       </view>

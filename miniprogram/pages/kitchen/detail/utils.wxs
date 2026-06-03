@@ -1,0 +1,19 @@
+/**
+ * WXS 工具模块 - 供 detail.wxml 模板使用
+ */
+var utils = {
+  /**
+   * 将秒数格式化为友好的时间文本
+   * 60以下显示"X秒"，60以上显示"X分Y秒"或"X分钟"
+   */
+  formatTimer: function(seconds) {
+    if (!seconds || seconds <= 0) return ''
+    if (seconds < 60) return seconds + '秒'
+    var mins = Math.floor(seconds / 60)
+    var secs = seconds % 60
+    if (secs === 0) return mins + '分钟'
+    return mins + '分' + secs + '秒'
+  }
+}
+
+module.exports = utils

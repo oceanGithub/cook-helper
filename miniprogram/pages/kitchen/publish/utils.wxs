@@ -1,0 +1,34 @@
+/**
+ * WXS 工具模块 - 供 publish.wxml 模板使用
+ */
+var utils = {
+  /**
+   * 检查数组是否包含某项
+   * arr: 数组
+   * item: 要查找的值
+   * key: 可选，对象数组中用于比较的字段名
+   */
+  includes: function(arr, item, key) {
+    if (!arr) return false
+    for (var i = 0; i < arr.length; i++) {
+      if (key) {
+        if (arr[i][key] === item) return true
+      } else {
+        if (arr[i] === item) return true
+      }
+    }
+    return false
+  },
+
+  /**
+   * 将秒数格式化为 mm:ss
+   */
+  formatTime: function(seconds) {
+    if (!seconds || seconds <= 0) return '00:00'
+    var mins = Math.floor(seconds / 60)
+    var secs = seconds % 60
+    return (mins < 10 ? '0' + mins : '' + mins) + ':' + (secs < 10 ? '0' + secs : '' + secs)
+  }
+}
+
+module.exports = utils

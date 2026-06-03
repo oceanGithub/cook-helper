@@ -1,0 +1,7 @@
+{
+  "usingComponents": {},
+  "navigationStyle": "default",
+  "navigationBarTitleText": "发布菜谱",
+  "navigationBarBackgroundColor": "#FF6B35",
+  "navigationBarTextStyle": "white"
+}

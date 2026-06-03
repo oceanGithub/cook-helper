@@ -54,7 +54,7 @@ Component({
     catParentName: '',
     lastAddedParentId: '',
     showParentPicker: false,
-    loading: false,
+    loading: true,
     dishesLoading: false,
     catSaving: false,
     _initialized: false,
