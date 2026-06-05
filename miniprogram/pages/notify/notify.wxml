@@ -1,3 +1,70 @@
-<view class="container">
-  <text class="placeholder-text">通知建设中...</text>
+<view class="leisure-page">
+  <!-- 背景浮动装饰 -->
+  <view class="bg-decor">
+    <text class="bg-decor-item bg-decor--1">🎮</text>
+    <text class="bg-decor-item bg-decor--2">🎯</text>
+    <text class="bg-decor-item bg-decor--3">🎪</text>
+    <text class="bg-decor-item bg-decor--4">🎨</text>
+    <text class="bg-decor-item bg-decor--5">🎭</text>
+    <text class="bg-decor-item bg-decor--6">✨</text>
+    <text class="bg-decor-item bg-decor--7">🎲</text>
+    <text class="bg-decor-item bg-decor--8">🌟</text>
+  </view>
+
+  <!-- 主内容区（pageReady 为 true 才渲染，实现动画重播） -->
+  <view class="content" wx:if="{{pageReady}}">
+    <!-- 顶部标题区 -->
+    <view class="header">
+      <view class="header-icon-wrap">
+        <view class="header-icon-ring"></view>
+        <text class="header-icon">🎮</text>
+      </view>
+      <text class="header-title">休闲天地</text>
+      <text class="header-desc">发现美食的另一种乐趣</text>
+    </view>
+
+    <!-- 功能卡片列表 -->
+    <view class="feature-list">
+      <view
+        class="feature-card {{item.available ? 'feature-card--available' : 'feature-card--locked'}}"
+        wx:for="{{features}}"
+        wx:key="id"
+        bindtap="onFeatureTap"
+        data-id="{{item.id}}"
+        data-available="{{item.available}}"
+      >
+        <!-- 卡片左侧图标 -->
+        <view class="feature-icon-wrap">
+          <view class="feature-icon-ring" wx:if="{{item.available}}"></view>
+          <text class="feature-icon">{{item.icon}}</text>
+        </view>
+
+        <!-- 卡片右侧内容 -->
+        <view class="feature-content">
+          <view class="feature-title-row">
+            <text class="feature-title">{{item.title}}</text>
+            <text class="feature-tag {{item.available ? 'feature-tag--hot' : 'feature-tag--soon'}}">{{item.tag}}</text>
+          </view>
+          <text class="feature-desc">{{item.desc}}</text>
+          <view class="feature-action" wx:if="{{item.available}}">
+            <text class="feature-action-text">立即体验</text>
+            <text class="feature-action-arrow">→</text>
+          </view>
+          <view class="feature-action feature-action--locked" wx:else>
+            <text class="feature-action-text">敬请期待</text>
+          </view>
+        </view>
+
+        <!-- 卡片装饰 -->
+        <view class="feature-card-decor" wx:if="{{item.available}}">
+          <text class="feature-card-decor-icon">{{item.icon}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部提示 -->
+    <view class="footer">
+      <text class="footer-text">更多有趣功能正在路上 ✨</text>
+    </view>
+  </view>
 </view>

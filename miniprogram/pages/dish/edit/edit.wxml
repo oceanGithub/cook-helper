@@ -47,6 +47,12 @@
       <textarea class="form-textarea" placeholder="请输入" value="{{note}}" bindinput="onNoteChange" auto-height="{{true}}" maxlength="200" />
     </view>
 
+    <!-- 小红书链接 -->
+    <view class="form-item form-item--col">
+      <text class="form-label">📕 小红书链接</text>
+      <textarea class="form-textarea" placeholder="从小红书复制分享链接粘贴到这里" value="{{xiaohongshuUrl}}" bindinput="onLinkChange" auto-height="{{true}}" maxlength="500" />
+    </view>
+
     <!-- 图片 -->
     <view class="form-item form-item--col">
       <text class="form-label">菜品图片</text>

@@ -270,6 +270,11 @@ page {
   word-break: break-all;
 }
 
+.chip-text--link {
+  color: #FF6B35;
+  text-decoration: underline;
+}
+
 .chip-label-row {
   display: flex;
   align-items: center;

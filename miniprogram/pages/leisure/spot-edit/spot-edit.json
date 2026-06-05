@@ -1,0 +1,9 @@
+{
+  "navigationStyle": "default",
+  "navigationBarTitleText": "发布好去处",
+  "navigationBarBackgroundColor": "#FF6B35",
+  "navigationBarTextStyle": "white",
+  "usingComponents": {
+    "t-button": "tdesign-miniprogram/button/button"
+  }
+}

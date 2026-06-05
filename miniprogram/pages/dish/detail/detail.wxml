@@ -146,6 +146,17 @@
           </view>
         </view>
 
+        <!-- 小红书链接 -->
+        <view class="info-chip" wx:if="{{dish.xiaohongshuUrl}}" style="animation-delay: 0.18s" bindtap="copyXhsLink">
+          <view class="chip-icon-wrap">
+            <text class="chip-icon">📕</text>
+          </view>
+          <view class="chip-content">
+            <text class="chip-label">小红书</text>
+            <text class="chip-text chip-text--link">点击查看原文</text>
+          </view>
+        </view>
+
         <!-- 相关菜谱区域 -->
         <view class="related-recipes" wx:if="{{relatedRecipes.length > 0}}">
           <view class="related-title">📝 相关菜谱</view>

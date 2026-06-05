@@ -1,0 +1,906 @@
+page {
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(180deg, #FFF5EE 0%, #FFECD2 50%, #FFF5EE 100%);
+}
+
+.random-page {
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+// ====== 背景浮动装饰 ======
+.bg-decor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-decor-item {
+  position: absolute;
+  opacity: 0.06;
+  animation: decor-float 8s ease-in-out infinite;
+}
+
+.bg-decor--1 { top: 10%; left: 8%; font-size: 50rpx; animation-duration: 7s; }
+.bg-decor--2 { top: 20%; right: 10%; font-size: 44rpx; animation-delay: 1s; animation-duration: 8.5s; }
+.bg-decor--3 { top: 40%; left: 5%; font-size: 36rpx; animation-delay: 2s; animation: sparkle 4s ease-in-out infinite; }
+.bg-decor--4 { top: 55%; right: 8%; font-size: 42rpx; animation-delay: 0.5s; animation-duration: 9s; }
+.bg-decor--5 { top: 70%; left: 12%; font-size: 48rpx; animation-delay: 3s; animation-duration: 7.5s; }
+.bg-decor--6 { top: 80%; right: 15%; font-size: 34rpx; animation-delay: 1.5s; animation: sparkle 5s ease-in-out infinite; }
+
+// ====== 主内容区 ======
+.content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+// ====== 上半部分可滚动区域 ======
+.main-scroll {
+  flex: 1;
+  height: 0; // flex 子元素可滚动的关键
+}
+
+// ====== 抽取区域 ======
+.roll-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  height: 100%;
+}
+
+// ====== 加载和空状态 ======
+.loading-wrap, .empty-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid rgba(255, 107, 53, 0.2);
+  border-top-color: #FF6B35;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-text { font-size: 28rpx; color: #999; }
+.empty-icon { font-size: 80rpx; opacity: 0.5; }
+.empty-title { font-size: 32rpx; font-weight: bold; color: #666; }
+.empty-desc { font-size: 26rpx; color: #999; }
+
+// ====== 菜品池设置入口 ======
+.pool-setting-btn {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 28rpx;
+  background: white;
+  border-radius: 40rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.1);
+  margin-bottom: 30rpx;
+  animation: fade-in 0.6s ease-out;
+
+  &:active {
+    transform: scale(0.98);
+    transition: transform 0.15s;
+  }
+}
+
+.pool-setting-btn--empty {
+  background: linear-gradient(135deg, #FFF5EE, #FFECD2);
+  border: 2rpx solid #FF6B35;
+  animation: pulse-border 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: #FF6B35; box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.2); }
+  50% { border-color: #FF8F5E; box-shadow: 0 4rpx 24rpx rgba(255, 107, 53, 0.4); }
+}
+
+.pool-setting-icon { font-size: 28rpx; }
+.pool-setting-text { font-size: 26rpx; color: #333; font-weight: 500; }
+.pool-count {
+  font-size: 22rpx;
+  color: #FF6B35;
+  background: rgba(255, 107, 53, 0.1);
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+}
+
+// ====== 中央抽取卡片 ======
+.roll-card-wrap {
+  position: relative;
+  width: 520rpx;
+  height: 520rpx;
+  margin-bottom: 40rpx;
+}
+
+.roll-card-ring {
+  position: absolute;
+  top: -16rpx;
+  left: -16rpx;
+  right: -16rpx;
+  bottom: -16rpx;
+  border-radius: 32rpx;
+  border: 4rpx solid rgba(255, 107, 53, 0.1);
+  animation: ring-pulse 3s ease-in-out infinite;
+}
+
+.roll-card {
+  width: 100%;
+  height: 100%;
+  background: white;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 40rpx rgba(255, 107, 53, 0.12);
+  overflow: hidden;
+  position: relative;
+  padding: 20rpx;
+  box-sizing: border-box;
+}
+
+.roll-card--rolling { animation: card-shake 0.1s ease-in-out infinite; }
+.roll-card--result { animation: card-bounce 0.5s ease-out; }
+
+// 初始状态
+.init-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+  animation: fade-in 0.6s ease-out;
+}
+
+.init-icon { font-size: 100rpx; margin-bottom: 8rpx; animation: float 3s ease-in-out infinite; }
+.init-title { font-size: 36rpx; font-weight: bold; color: #333; }
+.init-desc { font-size: 26rpx; color: #999; }
+
+// 滚动中
+.rolling-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.rolling-icon { font-size: 80rpx; animation: spin 0.3s linear infinite; }
+.rolling-name {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #FF6B35;
+  max-width: 400rpx;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rolling-hint { font-size: 26rpx; color: #999; }
+
+// 结果展示
+.result-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx;
+  animation: fade-in 0.5s ease-out;
+  width: 100%;
+}
+
+.result-image-wrap {
+  width: 380rpx;
+  height: 240rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+
+.result-image { width: 100%; height: 100%; }
+
+.result-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #FFF5EE, #FFECD2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.result-placeholder-icon { font-size: 80rpx; opacity: 0.5; }
+.result-name { font-size: 40rpx; font-weight: bold; color: #222; }
+
+.result-meta {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.result-category {
+  font-size: 24rpx;
+  color: #FF6B35;
+  background: rgba(255, 107, 53, 0.1);
+  padding: 8rpx 24rpx;
+  border-radius: 20rpx;
+}
+
+.result-custom-tag {
+  font-size: 24rpx;
+  color: #666;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 8rpx 24rpx;
+  border-radius: 20rpx;
+}
+
+.result-stars { display: flex; gap: 4rpx; }
+.result-star { font-size: 28rpx; color: #ddd; }
+.result-star--active { color: #ff9500; }
+
+// 卡片内查看详情按钮
+.result-detail-btn {
+  margin-top: 20rpx;
+  padding: 16rpx 40rpx;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.15), rgba(255, 143, 94, 0.2));
+  border-radius: 30rpx;
+  border: 2rpx solid rgba(255, 107, 53, 0.3);
+  transition: all 0.2s;
+
+  &:active {
+    transform: scale(0.95);
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.25), rgba(255, 143, 94, 0.3));
+  }
+}
+
+.result-detail-text {
+  font-size: 26rpx;
+  color: #FF6B35;
+  font-weight: 500;
+}
+
+// ====== 操作按钮 ======
+.action-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  width: 100%;
+  margin-bottom: 20rpx;
+}
+
+.roll-btn {
+  position: relative;
+  width: 400rpx;
+  height: 100rpx;
+  background: linear-gradient(135deg, #FF6B35, #FF8F5E);
+  border-radius: 50rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.3);
+
+  &:active { transform: scale(0.95); transition: transform 0.15s; }
+}
+
+.roll-btn--rolling { opacity: 0.7; pointer-events: none; }
+.roll-btn--empty {
+  background: linear-gradient(135deg, #666, #888);
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
+}
+
+.roll-btn-ring {
+  position: absolute;
+  top: -8rpx; left: -8rpx; right: -8rpx; bottom: -8rpx;
+  border-radius: 58rpx;
+  border: 2rpx solid rgba(255, 107, 53, 0.2);
+  animation: pulse-ring 2s ease-in-out infinite;
+}
+
+.roll-btn-text { font-size: 32rpx; font-weight: bold; color: white; }
+
+// ====== 历史记录（固定底部） ======
+.history-section {
+  width: 100%;
+  padding: 20rpx 40rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  border-top: 2rpx solid rgba(255, 107, 53, 0.1);
+  background: linear-gradient(180deg, rgba(255, 245, 238, 0.95), rgba(255, 236, 210, 0.98));
+  box-sizing: border-box;
+  flex-shrink: 0; // 不被压缩
+}
+
+.history-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #666;
+  margin-bottom: 24rpx;
+  display: block;
+}
+
+.history-list {
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: flex-start;
+}
+
+.history-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  margin-right: 20rpx;
+  width: 160rpx;
+  padding: 16rpx 12rpx;
+  background: white;
+  border-radius: 16rpx;
+  border: 2rpx solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+  vertical-align: top;
+}
+
+.history-item--custom {
+  border-color: rgba(255, 107, 53, 0.2);
+  background: linear-gradient(135deg, #FFFBF8, #FFF5EE);
+}
+
+.history-image-wrap {
+  width: 100%;
+  height: 100rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.history-image { width: 100%; height: 100%; }
+
+.history-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f5f5f5, #eee);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-placeholder-icon {
+  font-size: 36rpx;
+  opacity: 0.6;
+}
+
+.history-name {
+  font-size: 22rpx;
+  color: #333;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  font-weight: 500;
+}
+
+.history-custom-tag {
+  font-size: 18rpx;
+  color: #FF6B35;
+  background: rgba(255, 107, 53, 0.1);
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+// ====== 抽取池设置弹窗 ======
+.pool-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.pool-modal-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.pool-modal-content {
+  position: relative;
+  width: 100%;
+  height: 80vh;
+  max-height: 80vh;
+  background: white;
+  border-radius: 24rpx 24rpx 0 0;
+  display: flex;
+  flex-direction: column;
+  animation: slide-up 0.3s ease-out;
+}
+
+.pool-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx 32rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.pool-modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #222;
+}
+
+.pool-modal-close {
+  font-size: 32rpx;
+  color: #999;
+  padding: 10rpx;
+}
+
+// 顶部Tab切换
+.pool-tabs {
+  display: flex;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.pool-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 0;
+  position: relative;
+  transition: all 0.2s;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    right: 20%;
+    height: 4rpx;
+    background: transparent;
+    border-radius: 2rpx;
+    transition: all 0.2s;
+  }
+}
+
+.pool-tab--active {
+  &::after {
+    background: #FF6B35;
+  }
+}
+
+.pool-tab-text {
+  font-size: 28rpx;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.pool-tab--active .pool-tab-text {
+  color: #FF6B35;
+  font-weight: 600;
+}
+
+// Tab内容区域
+.pool-tab-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 0;
+  overflow: hidden;
+}
+
+// 分组Tab外层容器
+.pool-group-tabs-wrap {
+  flex-shrink: 0;
+  border-bottom: 2rpx solid #f0f0f0;
+  background: white;
+}
+
+// 分组Tab
+.pool-group-tabs {
+  white-space: nowrap;
+  padding: 20rpx 0;
+}
+
+.pool-group-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 24rpx;
+  margin: 0 8rpx;
+  background: #f5f5f5;
+  border-radius: 32rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.2s;
+}
+
+.pool-group-tab--active {
+  background: #FFF5EE;
+  border-color: #FF6B35;
+}
+
+.pool-group-tab--selected {
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.pool-group-tab-name {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.pool-group-tab--active .pool-group-tab-name {
+  color: #FF6B35;
+  font-weight: 500;
+}
+
+.pool-group-tab-check {
+  font-size: 22rpx;
+  color: #FF6B35;
+}
+
+// 全选按钮 - 特殊样式
+.pool-select-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 32rpx;
+  background: linear-gradient(135deg, #FFF8F5, #FFF0E8);
+  border-bottom: 2rpx solid rgba(255, 107, 53, 0.1);
+  flex-shrink: 0;
+}
+
+.pool-select-all-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.pool-checkbox {
+  width: 48rpx;
+  height: 48rpx;
+  border: 3rpx solid #FF6B35;
+  border-radius: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: white;
+  transition: all 0.2s;
+}
+
+.pool-checkbox--checked {
+  background: #FF6B35;
+  border-color: #FF6B35;
+}
+
+.pool-select-all-text {
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 600;
+}
+
+.pool-select-all-hint {
+  font-size: 24rpx;
+  color: #FF6B35;
+  opacity: 0.8;
+}
+
+// 重置按钮
+.pool-reset-btn {
+  padding: 12rpx 24rpx;
+  background: rgba(255, 107, 53, 0.1);
+  border-radius: 24rpx;
+  border: 2rpx solid rgba(255, 107, 53, 0.3);
+  transition: all 0.2s;
+
+  &:active {
+    background: rgba(255, 107, 53, 0.2);
+    transform: scale(0.95);
+  }
+}
+
+.pool-reset-text {
+  font-size: 24rpx;
+  color: #FF6B35;
+  font-weight: 500;
+}
+
+// 系统预设菜品样式
+.pool-dish-item--system {
+  background: #f8f8f8;
+  border-color: #eee;
+}
+
+// 菜品列表 - 卡片网格布局
+.pool-dish-list {
+  flex: 1;
+  height: 0;
+  min-height: 300rpx;
+  padding: 24rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.pool-dish-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.pool-dish-item {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx 24rpx;
+  background: white;
+  border-radius: 16rpx;
+  border: 2rpx solid #eee;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  transition: all 0.2s;
+  position: relative;
+  width: calc(50% - 10rpx);
+  box-sizing: border-box;
+
+  &:active {
+    transform: scale(0.98);
+    transition: transform 0.15s;
+  }
+}
+
+.pool-dish-item--checked {
+  background: #FFF5EE;
+  border-color: #FF6B35;
+  box-shadow: 0 4rpx 12rpx rgba(255, 107, 53, 0.15);
+}
+
+.pool-dish-check {
+  width: 40rpx;
+  height: 40rpx;
+  border: 2rpx solid #ddd;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  color: white;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.pool-dish-item--checked .pool-dish-check {
+  background: #FF6B35;
+  border-color: #FF6B35;
+}
+
+.pool-dish-name {
+  font-size: 26rpx;
+  color: #333;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pool-dish-indicator {
+  position: absolute;
+  top: 8rpx;
+  left: 8rpx;
+  width: 16rpx;
+  height: 16rpx;
+  background: #FF6B35;
+  border-radius: 50%;
+}
+
+.pool-empty {
+  padding: 60rpx 0;
+  text-align: center;
+}
+
+.pool-empty-icon {
+  font-size: 60rpx;
+  display: block;
+  margin-bottom: 16rpx;
+  opacity: 0.5;
+}
+
+.pool-empty-text {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.pool-empty-hint {
+  font-size: 24rpx;
+  color: #bbb;
+  margin-top: 8rpx;
+  display: block;
+}
+
+// ====== 自定义菜品相关 ======
+
+// 输入区域
+.custom-input-area {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx 32rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.custom-input {
+  flex: 1;
+  height: 80rpx;
+  padding: 0 24rpx;
+  background: #f5f5f5;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  color: #333;
+  border: 2rpx solid transparent;
+  transition: all 0.2s;
+
+  &:focus {
+    background: white;
+    border-color: #FF6B35;
+  }
+}
+
+.custom-add-btn {
+  padding: 0 32rpx;
+  height: 80rpx;
+  background: linear-gradient(135deg, #FF6B35, #FF8F5E);
+  border-radius: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &:active { opacity: 0.9; }
+}
+
+.custom-add-text {
+  font-size: 28rpx;
+  color: white;
+  font-weight: 500;
+}
+
+// 自定义菜品删除按钮
+.custom-dish-delete {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 36rpx;
+  height: 36rpx;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:active {
+    background: rgba(255, 59, 48, 0.2);
+  }
+}
+
+.custom-dish-delete-icon {
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1;
+}
+
+.custom-dish-delete:active .custom-dish-delete-icon {
+  color: #ff3b30;
+}
+
+// 底部确认栏
+.pool-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 32rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  border-top: 2rpx solid #f0f0f0;
+}
+
+.pool-footer-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.pool-selected-count {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.pool-footer-detail {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.pool-confirm-btn {
+  padding: 20rpx 48rpx;
+  background: linear-gradient(135deg, #FF6B35, #FF8F5E);
+  border-radius: 40rpx;
+
+  &:active { opacity: 0.9; }
+}
+
+.pool-confirm-text {
+  font-size: 28rpx;
+  color: white;
+  font-weight: 500;
+}
+
+// ====== 动画 ======
+@keyframes decor-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20rpx) rotate(8deg); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.05; transform: scale(1); }
+  50% { opacity: 0.15; transform: scale(1.2); }
+}
+
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.15; }
+}
+
+@keyframes ring-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.03); opacity: 0.1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-14rpx) scale(1.05); }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@keyframes card-shake {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-4rpx) rotate(-1deg); }
+  75% { transform: translateX(4rpx) rotate(1deg); }
+}
+
+@keyframes card-bounce {
+  0% { transform: scale(0.9); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(30rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}

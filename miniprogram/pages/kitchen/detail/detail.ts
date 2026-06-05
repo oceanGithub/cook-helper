@@ -64,6 +64,9 @@ Component({
       if (recipe.coverImage && recipe.coverImage.startsWith('cloud://')) {
         fileIDs.push(recipe.coverImage)
       }
+      if (recipe.createdByAvatar && recipe.createdByAvatar.startsWith('cloud://')) {
+        fileIDs.push(recipe.createdByAvatar)
+      }
 
       if (recipe.steps) {
         recipe.steps.forEach((step: any) => {
@@ -76,23 +79,30 @@ Component({
       if (fileIDs.length === 0) return
 
       try {
-        const res = await wx.cloud.getTempFileURL({ fileList: fileIDs })
+        // 通过云函数获取临时URL（服务端权限，可跨用户访问）
+        const cfRes = await wx.cloud.callFunction({
+          name: 'dishOp',
+          data: { action: 'getTempFileURL', fileIDs: [...new Set(fileIDs)] }
+        })
+        const result = cfRes.result as any
         const urlMap: Record<string, string> = {}
-        res.fileList.forEach((item: any) => {
-          if (item.status === 0) {
+        ;(result?.fileList || []).forEach((item: any) => {
+          if (item.tempFileURL && item.fileID) {
             urlMap[item.fileID] = item.tempFileURL
           }
         })
 
-        // 替换为新的临时链接
+        // 替换为新的临时链接，存入独立字段避免覆盖原始 cloud ID
         if (recipe.coverImage && urlMap[recipe.coverImage]) {
-          recipe.coverImage = urlMap[recipe.coverImage]
+          recipe.coverImageUrl = urlMap[recipe.coverImage]
         }
-
+        if (recipe.createdByAvatar && urlMap[recipe.createdByAvatar]) {
+          recipe.createdByAvatarUrl = urlMap[recipe.createdByAvatar]
+        }
         if (recipe.steps) {
           recipe.steps.forEach((step: any) => {
             if (step.image && urlMap[step.image]) {
-              step.image = urlMap[step.image]
+              step.imageUrl = urlMap[step.image]
             }
           })
         }
@@ -287,7 +297,7 @@ Component({
     },
 
     previewCover() {
-      const cover = this.data.recipe.coverImage
+      const cover = this.data.recipe.coverImageUrl || this.data.recipe.coverImage
       if (cover) {
         wx.previewImage({ current: cover, urls: [cover] })
       }
@@ -296,11 +306,9 @@ Component({
     previewStepImage(e: WechatMiniprogram.TouchEvent) {
       const index = e.currentTarget.dataset.index
       const step = this.data.recipe.steps[index]
-      if (step?.image) {
-        wx.previewImage({
-          current: step.image,
-          urls: [step.image],
-        })
+      const img = step?.imageUrl || step?.image
+      if (img) {
+        wx.previewImage({ current: img, urls: [img] })
       }
     },
 
@@ -491,14 +499,30 @@ Component({
       }
     },
 
+    // 封面图加载失败处理
+    onCoverError() {
+      this.setData({ 'recipe.coverImageUrl': '', 'recipe.coverImage': '' })
+    },
+
+    // 作者头像加载失败处理
+    onAuthorAvatarError() {
+      this.setData({ 'recipe.createdByAvatarUrl': '', 'recipe.createdByAvatar': '' })
+    },
+
+    // 步骤图加载失败处理
+    onStepImageError(e: WechatMiniprogram.ImageErrorEvent) {
+      const index = e.currentTarget.dataset.index
+      if (index !== undefined) {
+        this.setData({ [`recipe.steps[${index}].imageUrl`]: '', [`recipe.steps[${index}].image`]: '' })
+      }
+    },
+
     // 头像加载失败处理
     onAvatarError(e: WechatMiniprogram.ImageErrorEvent) {
-      const type = e.currentTarget.dataset.type // 'author' | 'try' | 'comment'
+      const type = e.currentTarget.dataset.type // 'try' | 'comment'
       const index = e.currentTarget.dataset.index
 
-      if (type === 'author') {
-        this.setData({ 'recipe.createdByAvatar': '' })
-      } else if (type === 'try' && index !== undefined) {
+      if (type === 'try' && index !== undefined) {
         this.setData({ [`tries[${index}].createdByAvatar`]: '' })
       } else if (type === 'comment' && index !== undefined) {
         this.setData({ [`comments[${index}].createdByAvatar`]: '' })

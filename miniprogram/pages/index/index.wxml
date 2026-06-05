@@ -1,6 +1,6 @@
 <view class="kitchen-page">
   <!-- 导航栏区域（含状态栏安全区） -->
-  <view class="kitchen-nav" style="padding-top: {{statusBarHeight}}px">
+  <view class="kitchen-nav" style="padding-top: {{statusBarHeight}}px;">
     <view class="group-bar" bindtap="goGroupManage">
       <text class="group-icon">👥</text>
       <text class="group-name">{{currentGroupName}}</text>
@@ -20,13 +20,16 @@
     </view>
     <!-- 左侧分类栏 -->
     <t-side-bar value="{{activeCategoryId}}" bind:change="selectCategory" class="side-bar" wx:if="{{categories1.length > 0}}">
-      <view wx:for="{{categories1}}" wx:key="_id" bindlongpress="onSidebarLongPress" data-id="{{item._id}}" data-name="{{item.name}}">
-        <t-side-bar-item
-          value="{{item._id}}"
-          label="{{item.name}}"
-          t-class="sidebar-item"
-        />
-      </view>
+      <t-side-bar-item
+        wx:for="{{categories1}}"
+        wx:key="_id"
+        value="{{item._id}}"
+        label="{{item.name}}"
+        t-class="sidebar-item"
+        data-id="{{item._id}}"
+        data-name="{{item.name}}"
+        bindlongpress="onSidebarLongPress"
+      />
     </t-side-bar>
     <view class="side-bar side-bar--empty" wx:else>
       <text class="side-bar-empty-text">暂无分类</text>

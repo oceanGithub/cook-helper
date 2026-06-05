@@ -37,6 +37,7 @@ Component({
     diffFilter: 0,
     showEmpty: false,
     loadError: false,
+    activeTab: 'all', // 'all' | 'liked' | 'bookmarked'
   },
 
   lifetimes: {
@@ -81,32 +82,112 @@ Component({
       await this.loadRecipes(true)
     },
 
+    onTabChange(e: any) {
+      const tab = e.currentTarget.dataset.tab
+      if (tab === this.data.activeTab) return
+      this.setData({ activeTab: tab, diffFilter: 0 })
+      // 切换 tab 后重新计算顶部高度
+      setTimeout(() => this.updateTopBarHeight(), 50)
+      this.refresh()
+    },
+
+    updateTopBarHeight() {
+      const query = this.createSelectorQuery()
+      query.select('.top-bar').boundingClientRect()
+      query.exec((res: any[]) => {
+        if (res[0]) {
+          this.setData({ topBarHeight: res[0].height })
+        }
+      })
+    },
+
     async loadRecipes(reset: boolean) {
       if (this.data.loading || this.data.loadingMore) return
       const page = reset ? 0 : this.data.page
       this.setData(reset ? { loading: true } : { loadingMore: true, hasLoadedMore: true })
 
       try {
-        const where: any = {}
-        if (this.data.diffFilter > 0) where.difficulty = this.data.diffFilter
-        if (this.data.searchKey) where.dishName = db.RegExp({ regexp: this.data.searchKey, options: 'i' })
+        const { activeTab, diffFilter, searchKey } = this.data
+        let recipes: Recipe[] = []
 
-        const res = await db.collection('recipes')
-          .where(where)
-          .orderBy('createdAt', 'desc')
-          .skip(page * PAGE_SIZE)
-          .limit(PAGE_SIZE)
-          .get()
+        if (activeTab === 'all') {
+          // 全部菜谱
+          const where: any = {}
+          if (diffFilter > 0) where.difficulty = diffFilter
+          if (searchKey) where.dishName = db.RegExp({ regexp: searchKey, options: 'i' })
 
-        const list = (res.data || []) as Recipe[]
-        const recipes = reset ? list : [...this.data.recipes, ...list]
-        this.setData({
-          recipes,
-          page: page + 1,
-          noMore: list.length < PAGE_SIZE,
-          showEmpty: recipes.length === 0,
-          loadError: false,
-        })
+          const res = await db.collection('recipes')
+            .where(where)
+            .orderBy('createdAt', 'desc')
+            .skip(page * PAGE_SIZE)
+            .limit(PAGE_SIZE)
+            .get()
+
+          const list = (res.data || []) as Recipe[]
+          // 转换云存储文件ID为临时URL
+          await this.convertRecipeImages(list)
+          recipes = reset ? list : [...this.data.recipes, ...list]
+          this.setData({
+            recipes,
+            page: page + 1,
+            noMore: list.length < PAGE_SIZE,
+            showEmpty: recipes.length === 0,
+            loadError: false,
+          })
+        } else {
+          // 我的点赞或我的收藏
+          const collection = activeTab === 'liked' ? 'recipeLikes' : 'recipeBookmarks'
+          const openid = app.globalData.openid
+
+          // 先获取用户点赞/收藏的记录
+          const statusRes = await db.collection(collection)
+            .where({ _openid: openid })
+            .orderBy('createdAt', 'desc')
+            .skip(page * PAGE_SIZE)
+            .limit(PAGE_SIZE)
+            .get()
+
+          const statusList = statusRes.data || []
+
+          if (statusList.length > 0) {
+            // 获取对应的菜谱
+            const recipeIds = statusList.map((item: any) => item.recipeId)
+            const recipeRes = await db.collection('recipes')
+              .where({ _id: _.in(recipeIds) })
+              .get()
+
+            const recipeMap: Record<string, Recipe> = {}
+            ;(recipeRes.data || []).forEach((r: any) => {
+              recipeMap[r._id] = r as Recipe
+            })
+
+            // 按照点赞/收藏的顺序排列
+            const list = recipeIds
+              .map((id: string) => recipeMap[id])
+              .filter(Boolean) as Recipe[]
+
+            // 转换云存储文件ID为临时URL
+            await this.convertRecipeImages(list)
+
+            recipes = reset ? list : [...this.data.recipes, ...list]
+            this.setData({
+              recipes,
+              page: page + 1,
+              noMore: statusList.length < PAGE_SIZE,
+              showEmpty: recipes.length === 0,
+              loadError: false,
+            })
+          } else {
+            recipes = reset ? [] : this.data.recipes
+            this.setData({
+              recipes,
+              page: page + 1,
+              noMore: true,
+              showEmpty: recipes.length === 0,
+              loadError: false,
+            })
+          }
+        }
       } catch (e) {
         console.error('load recipes error', e)
         if (reset) {
@@ -114,6 +195,45 @@ Component({
         }
       } finally {
         this.setData({ loading: false, loadingMore: false, refreshing: false })
+      }
+    },
+
+    // 将菜谱列表中的云存储文件ID转换为临时URL
+    async convertRecipeImages(list: Recipe[]) {
+      const fileIDs: string[] = []
+      list.forEach(item => {
+        if (item.coverImage && item.coverImage.startsWith('cloud://')) {
+          fileIDs.push(item.coverImage)
+        }
+        if (item.createdByAvatar && item.createdByAvatar.startsWith('cloud://')) {
+          fileIDs.push(item.createdByAvatar)
+        }
+      })
+      if (fileIDs.length === 0) return
+
+      try {
+        // 通过云函数获取临时URL（服务端权限，可跨用户访问）
+        const cfRes = await wx.cloud.callFunction({
+          name: 'dishOp',
+          data: { action: 'getTempFileURL', fileIDs: [...new Set(fileIDs)] }
+        })
+        const result = cfRes.result as any
+        const urlMap: Record<string, string> = {}
+        ;(result?.fileList || []).forEach((f: any) => {
+          if (f.tempFileURL && f.fileID) {
+            urlMap[f.fileID] = f.tempFileURL
+          }
+        })
+        list.forEach(item => {
+          if (item.coverImage && urlMap[item.coverImage]) {
+            ;(item as any).coverImageUrl = urlMap[item.coverImage]
+          }
+          if (item.createdByAvatar && urlMap[item.createdByAvatar]) {
+            ;(item as any).createdByAvatarUrl = urlMap[item.createdByAvatar]
+          }
+        })
+      } catch (e) {
+        console.error('转换图片URL失败:', e)
       }
     },
 
@@ -153,5 +273,21 @@ Component({
     },
 
     onScroll(e: any) {},
+
+    // 封面图加载失败 → 清空 src 显示占位图
+    onCoverError(e: any) {
+      const index = e.currentTarget.dataset.index
+      if (index !== undefined) {
+        this.setData({ [`recipes[${index}].coverImageUrl`]: '', [`recipes[${index}].coverImage`]: '' })
+      }
+    },
+
+    // 头像加载失败 → 清空 src 显示占位图
+    onAvatarError(e: any) {
+      const index = e.currentTarget.dataset.index
+      if (index !== undefined) {
+        this.setData({ [`recipes[${index}].createdByAvatarUrl`]: '', [`recipes[${index}].createdByAvatar`]: '' })
+      }
+    },
   },
 })

@@ -21,7 +21,7 @@ Component({
     
     // Step 1: 选择菜品
     showDishModal: false,
-    dishTab: 'existing',
+    dishTab: 'manual',
     dishes: [] as any[],
     filteredDishes: [] as any[],
     dishSearchKey: '',
@@ -54,7 +54,7 @@ Component({
     customSeasoningAmount: '',
     
     // Step 4: 步骤
-    steps: [{ text: '', image: '', timer: 0 }] as Step[],
+    steps: [{ text: '', image: '', imageUrl: '', timer: 0 }] as Step[],
     showTimerModal: false,
     currentStepIndex: 0,
     timerPickerValue: [0],
@@ -73,6 +73,7 @@ Component({
 
     // 菜品封面
     coverImage: '',
+    coverImageUrl: '',
 
     // 编辑模式
     editMode: false,
@@ -133,13 +134,67 @@ Component({
     async loadDishes() {
       try {
         const res = await db.collection('dishes').get()
+        const dishes = res.data || []
+        // 刷新云存储图片URL
+        await this.refreshDishImages(dishes)
         this.setData({
-          dishes: res.data || [],
-          filteredDishes: res.data || [],
+          dishes,
+          filteredDishes: dishes,
         })
       } catch (e) {
         console.error('加载菜品失败', e)
       }
+    },
+
+    // 刷新菜品图片URL（云存储fileID转临时URL，保留原始cloud ID）
+    async refreshDishImages(dishes: any[]) {
+      const fileIDs: string[] = []
+      for (const dish of dishes) {
+        if (dish.images && dish.images.length > 0) {
+          fileIDs.push(...dish.images.filter((url: string) => url && url.startsWith('cloud://')))
+        }
+        if (dish.imageUrl && dish.imageUrl.startsWith('cloud://')) {
+          fileIDs.push(dish.imageUrl)
+        }
+      }
+      if (fileIDs.length === 0) return
+      try {
+        const urlMap = await this.refreshImageURLs(fileIDs)
+        for (const dish of dishes) {
+          if (dish.images && dish.images.length > 0) {
+            dish.displayImages = dish.images.map((url: string) => {
+              if (!url) return ''
+              if (url.startsWith('cloud://')) return urlMap[url] || ''
+              return url
+            }).filter(Boolean)
+          }
+          if (dish.imageUrl) {
+            if (dish.imageUrl.startsWith('cloud://')) {
+              dish.displayImageUrl = urlMap[dish.imageUrl] || ''
+            } else {
+              dish.displayImageUrl = dish.imageUrl
+            }
+          }
+        }
+      } catch (e) {
+        console.error('刷新菜品图片失败', e)
+      }
+    },
+
+    // 通用 cloud:// → https:// 转换（通过云函数获取管理权限）
+    async refreshImageURLs(urls: string[]): Promise<Record<string, string>> {
+      const fileIDs = urls.filter(u => u && u.startsWith('cloud://'))
+      if (fileIDs.length === 0) return {}
+      const res = await wx.cloud.callFunction({
+        name: 'dishOp',
+        data: { action: 'getTempFileURL', fileIDs: [...new Set(fileIDs)] }
+      })
+      const map: Record<string, string> = {}
+      const result = res.result as any
+      ;(result?.fileList || []).forEach((f: any) => {
+        if (f.tempFileURL && f.fileID) map[f.fileID] = f.tempFileURL
+      })
+      return map
     },
 
     // 编辑模式：加载已有菜谱数据
@@ -149,9 +204,18 @@ Component({
         const recipe = res.data as any
         if (!recipe) return
 
+        // 收集所有需要转换的 cloud:// URL
+        const urls: string[] = []
+        if (recipe.coverImage) urls.push(recipe.coverImage)
+        if (recipe.steps) {
+          recipe.steps.forEach((s: any) => { if (s.image) urls.push(s.image) })
+        }
+        const urlMap = await this.refreshImageURLs(urls)
+
         const steps = (recipe.steps || []).map((s: any) => ({
           text: s.text || '',
           image: s.image || '',
+          imageUrl: s.image ? (urlMap[s.image] || '') : '',
           timer: s.timer || 0,
         }))
 
@@ -160,9 +224,10 @@ Component({
           selectedDishName: recipe.dishName || '',
           dishName: recipe.dishName || '',
           coverImage: recipe.coverImage || '',
+          coverImageUrl: recipe.coverImage ? (urlMap[recipe.coverImage] || '') : '',
           ingredients: recipe.ingredients || [],
           seasonings: recipe.seasonings || [],
-          steps: steps.length > 0 ? steps : [{ text: '', image: '', timer: 0 }],
+          steps: steps.length > 0 ? steps : [{ text: '', image: '', imageUrl: '', timer: 0 }],
           difficulty: recipe.difficulty || 1,
           prepTime: recipe.prepTime ? String(recipe.prepTime) : '',
           cookTime: recipe.cookTime ? String(recipe.cookTime) : '',
@@ -179,7 +244,7 @@ Component({
     showDishPicker() {
       this.setData({
         showDishModal: true,
-        dishTab: 'existing',
+        dishTab: this.data.selectedDishId ? 'existing' : 'manual',
         dishSearchKey: '',
         filteredDishes: this.data.dishes,
       })
@@ -209,13 +274,26 @@ Component({
     },
 
     // Step 1: 选择已有菜品
-    selectDish(e: WechatMiniprogram.TouchEvent) {
-      const { id, name } = e.currentTarget.dataset
+    async selectDish(e: WechatMiniprogram.TouchEvent) {
+      const { id, name, images, imageUrl } = e.currentTarget.dataset
+      // 从菜品图片中取第一张作为封面（cloud:// URL）
+      let coverImage = ''
+      const imagesArr = Array.isArray(images) ? images : (typeof images === 'string' ? images.split(',') : [])
+      if (imagesArr.length > 0 && imagesArr[0]) {
+        coverImage = imagesArr[0]
+      } else if (imageUrl) {
+        coverImage = imageUrl
+      }
+      // 转换为展示 URL
+      const urlMap = coverImage ? await this.refreshImageURLs([coverImage]) : {}
+      const coverImageUrl = urlMap[coverImage] || ''
       this.setData({
         selectedDishId: id,
         selectedDishName: name,
         manualDishName: '',
         dishName: name,
+        coverImage,
+        coverImageUrl,
         showDishModal: false,
       })
     },
@@ -230,6 +308,8 @@ Component({
         selectedDishId: '',
         selectedDishName: '',
         dishName: this.data.manualDishName.trim(),
+        coverImage: '',  // 手动输入需要重新上传封面
+        coverImageUrl: '',
         showDishModal: false,
       })
     },
@@ -246,33 +326,34 @@ Component({
         selectedDishName: '',
         manualDishName: '',
         dishName: '',
+        coverImage: '',
+        coverImageUrl: '',
       })
     },
 
     // Step 1: 选择封面图
-    async chooseCoverImage() {
-      try {
-        const res = await wx.chooseImage({
-          count: 1,
-          sizeType: ['compressed'],
-          sourceType: ['album', 'camera'],
-        })
-        this.setData({ coverImage: res.tempFilePaths[0] })
-      } catch (e) {
-        console.error('选择封面图失败', e)
-      }
+    chooseCoverImage() {
+      wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['album', 'camera'],
+        success: (res) => {
+          this.setData({ coverImage: res.tempFiles[0].tempFilePath, coverImageUrl: '' })
+        },
+      })
     },
 
     // Step 1: 预览封面图
     previewCoverImage() {
-      if (this.data.coverImage) {
-        wx.previewImage({ current: this.data.coverImage, urls: [this.data.coverImage] })
+      const url = this.data.coverImageUrl || this.data.coverImage
+      if (url) {
+        wx.previewImage({ current: url, urls: [url] })
       }
     },
 
     // Step 1: 删除封面图
     removeCoverImage() {
-      this.setData({ coverImage: '' })
+      this.setData({ coverImage: '', coverImageUrl: '' })
     },
 
     // Step 2: 弹窗控制
@@ -536,7 +617,7 @@ Component({
 
     // Step 4: 步骤相关方法
     addStep() {
-      const steps = [...this.data.steps, { text: '', image: '', timer: 0 }]
+      const steps = [...this.data.steps, { text: '', image: '', imageUrl: '', timer: 0 }]
       this.setData({ steps })
     },
 
@@ -579,29 +660,28 @@ Component({
     },
 
     // Step 4: 添加步骤图片
-    async addStepImage(e: WechatMiniprogram.TouchEvent) {
+    addStepImage(e: WechatMiniprogram.TouchEvent) {
       const index = e.currentTarget.dataset.index
-      try {
-        const res = await wx.chooseImage({
-          count: 1,
-          sizeType: ['compressed'],
-          sourceType: ['album', 'camera'],
-        })
-
-        const steps = [...this.data.steps]
-        steps[index].image = res.tempFilePaths[0]
-        this.setData({ steps })
-      } catch (e) {
-        console.error('选择图片失败', e)
-      }
+      wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['album', 'camera'],
+        success: (res) => {
+          const steps = [...this.data.steps]
+          steps[index].image = res.tempFiles[0].tempFilePath
+          steps[index].imageUrl = ''
+          this.setData({ steps })
+        },
+      })
     },
 
     // Step 4: 预览步骤图片
     previewStepImage(e: WechatMiniprogram.TouchEvent) {
       const index = e.currentTarget.dataset.index
-      const image = this.data.steps[index]?.image
-      if (image) {
-        wx.previewImage({ current: image, urls: [image] })
+      const step = this.data.steps[index]
+      const url = step?.imageUrl || step?.image
+      if (url) {
+        wx.previewImage({ current: url, urls: [url] })
       }
     },
 
@@ -610,6 +690,7 @@ Component({
       const index = e.currentTarget.dataset.index
       const steps = [...this.data.steps]
       steps[index].image = ''
+      steps[index].imageUrl = ''
       this.setData({ steps })
     },
 
@@ -737,8 +818,20 @@ Component({
 
         // 上传单个文件（带重试）
         const uploadFile = async (filePath: string, prefix: string): Promise<string> => {
-          if (!filePath || filePath.startsWith('cloud://')) return filePath || ''
-          if (!filePath.startsWith('http://tmp/')) return filePath
+          if (!filePath) return ''
+          if (filePath.startsWith('cloud://')) return filePath
+
+          // 检查文件是否真实存在（旧临时路径可能已失效）
+          try {
+            const fs = wx.getFileSystemManager()
+            await new Promise<void>((resolve, reject) => {
+              fs.access({ path: filePath, success: () => resolve(), fail: reject })
+            })
+          } catch {
+            // 文件不存在（旧 temp 路径或无效路径），跳过
+            return ''
+          }
+
           const ext = filePath.split('.').pop() || 'jpg'
           const cloudPath = `${prefix}/${openid}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
           for (let i = 0; i < 2; i++) {

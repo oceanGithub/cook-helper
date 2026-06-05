@@ -1,5 +1,15 @@
 <view class="kitchen-page">
 
+  <!-- 背景浮动装饰 -->
+  <view class="bg-decor">
+    <text class="bg-decor-item bg-decor--1">📖</text>
+    <text class="bg-decor-item bg-decor--2">🍳</text>
+    <text class="bg-decor-item bg-decor--3">🥢</text>
+    <text class="bg-decor-item bg-decor--4">🍴</text>
+    <text class="bg-decor-item bg-decor--5">🥘</text>
+    <text class="bg-decor-item bg-decor--6">✨</text>
+  </view>
+
   <!-- 顶部搜索+筛选模块（固定） -->
   <view class="top-bar" style="padding-top:{{searchBarTop}}px">
     <view class="search-input-wrap">
@@ -7,7 +17,14 @@
       <input class="search-input" placeholder="搜索菜谱..." value="{{searchKey}}" bindinput="onSearch" bindconfirm="onSearch" />
       <text class="search-clear" wx:if="{{searchKey}}" bindtap="onClearSearch">✕</text>
     </view>
-    <view class="diff-filter">
+    <!-- Tab 切换 -->
+    <view class="tab-filter">
+      <view class="tab-item {{activeTab === 'all' ? 'tab-item--active' : ''}}" data-tab="all" bindtap="onTabChange">全部</view>
+      <view class="tab-item {{activeTab === 'liked' ? 'tab-item--active' : ''}}" data-tab="liked" bindtap="onTabChange">❤️ 我的点赞</view>
+      <view class="tab-item {{activeTab === 'bookmarked' ? 'tab-item--active' : ''}}" data-tab="bookmarked" bindtap="onTabChange">⭐ 我的收藏</view>
+    </view>
+    <!-- 难度筛选 -->
+    <view class="diff-filter" wx:if="{{activeTab === 'all'}}">
       <view class="diff-tag {{diffFilter === 0 ? 'diff-tag--active' : ''}}" data-val="0" bindtap="onDiffFilter">全部</view>
       <view class="diff-tag {{diffFilter === 1 ? 'diff-tag--active' : ''}}" data-val="1" bindtap="onDiffFilter">🔥 简单</view>
       <view class="diff-tag {{diffFilter === 2 ? 'diff-tag--active' : ''}}" data-val="2" bindtap="onDiffFilter">🔥🔥 中等</view>
@@ -25,7 +42,7 @@
     <!-- 菜谱卡片 -->
     <view class="recipe-card" wx:for="{{recipes}}" wx:key="_id" data-id="{{item._id}}" bindtap="goDetail">
       <view class="recipe-card-cover">
-        <image class="recipe-card-img" wx:if="{{item.coverImage}}" src="{{item.coverImage}}" mode="aspectFill" />
+        <image class="recipe-card-img" wx:if="{{item.coverImageUrl || item.coverImage}}" src="{{item.coverImageUrl || item.coverImage}}" mode="aspectFill" binderror="onCoverError" data-index="{{index}}" />
         <view class="recipe-card-img-placeholder" wx:else>
           <text class="placeholder-icon">📖</text>
         </view>
@@ -46,7 +63,7 @@
           </view>
         </view>
         <view class="recipe-card-author" wx:if="{{item.createdByName}}">
-          <image class="author-avatar" wx:if="{{item.createdByAvatar}}" src="{{item.createdByAvatar}}" mode="aspectFill" />
+          <image class="author-avatar" wx:if="{{item.createdByAvatarUrl || item.createdByAvatar}}" src="{{item.createdByAvatarUrl || item.createdByAvatar}}" mode="aspectFill" binderror="onAvatarError" data-index="{{index}}" />
           <view class="author-avatar-placeholder" wx:else>
             <text>{{item.createdByName[0] || '?'}}</text>
           </view>
@@ -69,14 +86,14 @@
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{showEmpty}}">
       <view class="empty-illustration">
-        <text class="empty-icon">📖</text>
+        <text class="empty-icon">{{activeTab === 'all' ? '📖' : activeTab === 'liked' ? '❤️' : '⭐'}}</text>
         <view class="empty-decor empty-decor--1">🍳</view>
         <view class="empty-decor empty-decor--2">🥢</view>
         <view class="empty-decor empty-decor--3">✨</view>
       </view>
-      <text class="empty-title">还没有菜谱</text>
-      <text class="empty-desc">快来发布第一份菜谱，分享你的拿手好菜吧！</text>
-      <view class="empty-btn" bindtap="goPublish">
+      <text class="empty-title">{{activeTab === 'all' ? '还没有菜谱' : activeTab === 'liked' ? '还没有点赞的菜谱' : '还没有收藏的菜谱'}}</text>
+      <text class="empty-desc">{{activeTab === 'all' ? '快来发布第一份菜谱，分享你的拿手好菜吧！' : '去发现更多美味菜谱吧！'}}</text>
+      <view class="empty-btn" bindtap="goPublish" wx:if="{{activeTab === 'all'}}">
         <text class="empty-btn-icon">+</text>
         <text class="empty-btn-text">发布菜谱</text>
       </view>

@@ -14,7 +14,11 @@
     "pages/kitchen/publish/publish",
     "pages/kitchen/detail/detail",
     "pages/kitchen/cook/cook",
-    "pages/kitchen/try/try"
+    "pages/kitchen/try/try",
+    "pages/leisure/random-dish/random-dish",
+    "pages/leisure/random-place/random-place",
+    "pages/leisure/spot-edit/spot-edit",
+    "pages/leisure/spot-detail/spot-detail"
   ],
   "window": {
     "navigationBarTextStyle": "black",
@@ -51,6 +55,15 @@
         "selectedIconPath": "assets/icons/mine-active.png"
       }
     ]
+  },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation"
+  ],
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于获取您所在的城市，展示附近的休闲好去处"
+    }
   },
   "cloud": true,
   "style": "v2",

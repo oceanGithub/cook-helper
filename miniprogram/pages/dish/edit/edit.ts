@@ -29,6 +29,7 @@ Component({
     address: '',
     note: '',
     images: [] as string[],
+    xiaohongshuUrl: '',
     saving: false,
     loading: false,
   },
@@ -132,6 +133,7 @@ Component({
           address: d.address || '',
           note: d.note || '',
           images: d.images || (d.imageUrl ? [d.imageUrl] : []),
+          xiaohongshuUrl: d.xiaohongshuUrl || '',
         })
       } catch (e) {
         console.error('加载菜品失败', e)
@@ -171,6 +173,8 @@ Component({
     onNameChange(e: any) { this.setData({ name: e.detail.value }) },
     onAddrChange(e: any) { this.setData({ address: e.detail.value }) },
     onNoteChange(e: any) { this.setData({ note: e.detail.value }) },
+    onLinkChange(e: any) { this.setData({ xiaohongshuUrl: e.detail.value }) },
+    clearLink() { this.setData({ xiaohongshuUrl: '' }) },
 
     onStarTap(e: any) {
       this.setData({ rating: +e.currentTarget.dataset.val })
@@ -243,6 +247,7 @@ Component({
         address: this.data.address.trim(),
         note: this.data.note.trim(),
         images: this.data.images,
+        xiaohongshuUrl: this.data.xiaohongshuUrl.trim(),
         createdByName: app.globalData.userInfo?.nickName || '',
       }
 

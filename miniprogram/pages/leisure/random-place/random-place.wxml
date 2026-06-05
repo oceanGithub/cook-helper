@@ -1,0 +1,196 @@
+<view class="page">
+  <!-- 顶部 Header -->
+  <view class="header">
+    <view class="header-top">
+      <view class="location-btn" bindtap="showCityPicker">
+        <text class="loc-icon">📍</text>
+        <text class="loc-text">{{cityIndex >= 0 ? cityList[cityIndex] : '选择城市'}}{{districtIndex >= 0 ? '·' + districtList[districtIndex] : ''}}</text>
+        <text class="loc-arrow">▼</text>
+      </view>
+      <view class="mode-toggle" bindtap="switchMode">
+        <text class="toggle-icon">{{activeMode === 'data' ? '🗺️' : '📋'}}</text>
+        <text class="toggle-text">{{activeMode === 'data' ? '地图' : '数据'}}</text>
+      </view>
+    </view>
+
+    <!-- 游玩类型标签 -->
+    <scroll-view class="type-tabs" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="type-tab {{filterType === '' ? 'active' : ''}}" data-type="" bindtap="onFilterTypeTap">全部</view>
+      <view
+        wx:for="{{playTypeList}}"
+        wx:key="value"
+        class="type-tab {{filterType === item.value ? 'active' : ''}}"
+        data-value="{{item.value}}"
+        bindtap="onFilterTypeTap"
+      >{{item.label}}</view>
+    </scroll-view>
+  </view>
+
+  <!-- 城市选择弹窗 -->
+  <view class="city-modal {{showCityModal ? 'show' : ''}}" catchtap="hideCityPicker">
+    <view class="city-modal-content" catchtap="preventTap">
+      <view class="city-modal-header">
+        <text class="city-modal-title">选择城市</text>
+        <text class="city-modal-close" bindtap="hideCityPicker">✕</text>
+      </view>
+      <view class="city-modal-body">
+        <!-- 城市列表 -->
+        <scroll-view class="city-list" scroll-y enhanced show-scrollbar="{{false}}">
+          <view
+            wx:for="{{cityList}}"
+            wx:key="*this"
+            class="city-item {{cityIndex === index ? 'active' : ''}}"
+            data-index="{{index}}"
+            bindtap="onCityTap"
+          >{{item}}</view>
+        </scroll-view>
+        <!-- 区列表 -->
+        <scroll-view class="district-list" scroll-y enhanced show-scrollbar="{{false}}">
+          <view
+            wx:for="{{districtList}}"
+            wx:key="*this"
+            class="district-item {{districtIndex === index ? 'active' : ''}}"
+            data-index="{{index}}"
+            bindtap="onDistrictTap"
+          >{{item}}</view>
+        </scroll-view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 数据模式 -->
+  <view class="data-mode" wx:if="{{activeMode === 'data'}}">
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && spots.length === 0}}">
+      <text class="empty-icon">🏖️</text>
+      <text class="empty-text">暂无好去处</text>
+      <text class="empty-hint">快来发布第一个吧～</text>
+    </view>
+
+    <!-- 骨架屏加载 -->
+    <view class="skeleton-grid" wx:if="{{loading && spots.length === 0}}">
+      <view class="skeleton-card" wx:for="{{[1,2,3,4]}}" wx:key="*this">
+        <view class="sk-cover shimmer"></view>
+        <view class="sk-info">
+          <view class="sk-name shimmer"></view>
+          <view class="sk-loc shimmer"></view>
+          <view class="sk-tag shimmer"></view>
+          <view class="sk-user shimmer"></view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 卡片列表 -->
+    <scroll-view
+      class="spot-list"
+      scroll-y
+      enhanced
+      show-scrollbar="{{false}}"
+      fast-deceleration
+      bindscrolltolower="loadMore"
+      refresher-enabled
+      refresher-triggered="{{refreshing}}"
+      bindrefresherrefresh="onRefresh"
+    >
+      <view class="spot-grid">
+        <view class="spot-card" wx:for="{{spots}}" wx:key="_id" data-id="{{item._id}}" bindtap="goDetail">
+          <view class="card-cover">
+            <image wx:if="{{item.coverImageUrl}}" class="cover-img" src="{{item.coverImageUrl}}" mode="aspectFill" />
+            <view wx:else class="cover-placeholder">
+              <text class="placeholder-emoji">🏖️</text>
+            </view>
+            <view class="card-rating" wx:if="{{item.rating}}">
+              <text class="star">★</text>
+              <text class="rating-num">{{item.rating}}</text>
+            </view>
+          </view>
+          <view class="card-info">
+            <text class="card-name">{{item.name}}</text>
+            <view class="card-location">
+              <text class="loc-icon">📍</text>
+              <text class="loc-text">{{item.district}}</text>
+            </view>
+            <view class="card-bottom">
+              <text class="card-tag" wx:if="{{item.playTypeLabel}}">{{item.playTypeLabel}}</text>
+            </view>
+            <view class="card-user" wx:if="{{item.createdByName}}">
+              <image wx:if="{{item.createdByAvatarUrl}}" class="user-avatar" src="{{item.createdByAvatarUrl}}" mode="aspectFill" />
+              <view wx:else class="user-avatar-placeholder">👤</view>
+              <text class="user-name">{{item.createdByName}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 加载更多 -->
+      <view class="load-more" wx:if="{{loading && spots.length > 0}}">
+        <view class="dot"></view>
+        <view class="dot"></view>
+        <view class="dot"></view>
+      </view>
+      <view class="load-more" wx:if="{{!hasMore && spots.length > 0}}">
+        <text class="load-end">— 已加载全部 —</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 地图模式 -->
+  <view class="map-mode" wx:if="{{activeMode === 'map'}}">
+    <map
+      id="spotMap"
+      class="full-map"
+      longitude="{{mapLongitude}}"
+      latitude="{{mapLatitude}}"
+      scale="{{mapScale}}"
+      markers="{{markers}}"
+      polygons="{{cityPolygons}}"
+      show-location
+      enable-zoom
+      enable-scroll
+      bindmarkertap="onMarkerTap"
+      bindtap="onMapTap"
+      bindregionchange="onMapRegionChange"
+    />
+    <!-- 加载提示 -->
+    <view class="map-loading" wx:if="{{loading}}">
+      <view class="map-loading-bar">
+        <view class="loading-dot"></view>
+        <view class="loading-dot"></view>
+        <view class="loading-dot"></view>
+        <text class="loading-text">加载中</text>
+      </view>
+    </view>
+    <!-- 回到当前位置按钮 -->
+    <view class="locate-btn" bindtap="moveToCurrentLocation">
+      <text class="locate-icon">📍</text>
+    </view>
+
+    <!-- 选中的地点卡片 -->
+    <view class="map-spot-card {{showSpotCard ? 'show' : ''}}" wx:if="{{selectedSpot}}" catchtap="goSelectedDetail">
+      <view class="map-card-cover">
+        <image wx:if="{{selectedSpot.coverImageUrl}}" class="map-card-img" src="{{selectedSpot.coverImageUrl}}" mode="aspectFill" />
+        <view wx:else class="map-card-placeholder">🏖️</view>
+      </view>
+      <view class="map-card-info">
+        <text class="map-card-name">{{selectedSpot.name}}</text>
+        <view class="map-card-loc">
+          <text>📍 {{selectedSpot.district}}</text>
+        </view>
+        <view class="map-card-bottom">
+          <text class="map-card-type" wx:if="{{selectedSpot.playTypeLabel}}">{{selectedSpot.playTypeLabel}}</text>
+          <text class="map-card-rating" wx:if="{{selectedSpot.rating}}">★ {{selectedSpot.rating}}</text>
+        </view>
+      </view>
+      <view class="map-card-arrow">></view>
+    </view>
+  </view>
+
+  <!-- 浮动发布按钮 -->
+  <view class="fab-container" bindtap="goPublish">
+    <view class="fab-item">
+      <text class="fab-icon">+</text>
+      <text class="fab-label">发布</text>
+    </view>
+    <view class="fab-pulse"></view>
+  </view>
+</view>

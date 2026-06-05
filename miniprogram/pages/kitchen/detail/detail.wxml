@@ -30,9 +30,9 @@
   <scroll-view class="content" scroll-y wx:else>
     <!-- 封面图 -->
     <view class="cover-section">
-      <swiper class="cover-swiper" wx:if="{{recipe.coverImage}}" autoplay circular>
+      <swiper class="cover-swiper" wx:if="{{recipe.coverImageUrl || recipe.coverImage}}" autoplay circular>
         <swiper-item>
-          <image class="cover-image" src="{{recipe.coverImage}}" mode="aspectFill" bindtap="previewCover" />
+          <image class="cover-image" src="{{recipe.coverImageUrl || recipe.coverImage}}" mode="aspectFill" bindtap="previewCover" binderror="onCoverError" />
         </swiper-item>
       </swiper>
       <view class="cover-placeholder" wx:else>
@@ -65,7 +65,7 @@
 
       <!-- 作者信息 -->
       <view class="author-section">
-        <image class="author-avatar" wx:if="{{recipe.createdByAvatar}}" src="{{recipe.createdByAvatar}}" mode="aspectFill" binderror="onAvatarError" data-type="author" />
+        <image class="author-avatar" wx:if="{{recipe.createdByAvatarUrl || recipe.createdByAvatar}}" src="{{recipe.createdByAvatarUrl || recipe.createdByAvatar}}" mode="aspectFill" binderror="onAuthorAvatarError" data-type="author" />
         <view class="author-avatar-placeholder" wx:else>
           <text>{{recipe.createdByName[0] || '?'}}</text>
         </view>
@@ -105,7 +105,7 @@
         <view class="step-item" wx:for="{{recipe.steps}}" wx:key="index">
           <view class="step-number">{{index + 1}}</view>
           <view class="step-content">
-            <image class="step-image" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" bindtap="previewStepImage" data-index="{{index}}" />
+            <image class="step-image" wx:if="{{item.imageUrl || item.image}}" src="{{item.imageUrl || item.image}}" mode="aspectFill" bindtap="previewStepImage" data-index="{{index}}" binderror="onStepImageError" data-index="{{index}}" />
             <text class="step-text">{{item.text}}</text>
             <view class="step-timer" wx:if="{{item.timer > 0}}">
               <text class="timer-icon">⏱</text>

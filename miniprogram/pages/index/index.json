@@ -1,4 +1,5 @@
 {
+  "navigationStyle": "custom",
   "styleIsolation": "shared",
   "usingComponents": {
     "t-side-bar": "tdesign-miniprogram/side-bar/side-bar",

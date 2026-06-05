@@ -44,6 +44,7 @@
         <view class="step-title">选择菜品</view>
 
         <!-- 已选菜品展示区 -->
+        <text class="cover-label">菜品名称</text>
         <view class="selected-area">
           <view class="dish-selected-card" wx:if="{{selectedDishName || manualDishName}}">
             <view class="dish-selected-info">
@@ -68,8 +69,8 @@
         <!-- 菜品封面（选择菜品后显示） -->
         <view class="cover-section" wx:if="{{selectedDishName || manualDishName}}">
           <text class="cover-label">菜品封面(可选)</text>
-          <view class="cover-area" wx:if="{{coverImage}}" bindtap="previewCoverImage">
-            <image class="cover-preview" src="{{coverImage}}" mode="aspectFill" />
+          <view class="cover-area" wx:if="{{coverImage && coverImage.length > 0}}" bindtap="previewCoverImage">
+            <image class="cover-preview" src="{{coverImageUrl || coverImage}}" mode="aspectFill" />
             <view class="cover-remove" catchtap="removeCoverImage">✕</view>
           </view>
           <view class="cover-add" wx:else bindtap="chooseCoverImage">
@@ -193,7 +194,7 @@
                 </view>
 
                 <view class="step-image-wrap" wx:if="{{item.image}}">
-                  <image class="step-preview-image" src="{{item.image}}" mode="aspectFill" bindtap="previewStepImage" data-index="{{index}}" />
+                  <image class="step-preview-image" src="{{item.imageUrl || item.image}}" mode="aspectFill" bindtap="previewStepImage" data-index="{{index}}" />
                   <view class="step-image-remove" catchtap="removeStepImage" data-index="{{index}}">✕</view>
                 </view>
               </view>
@@ -283,7 +284,7 @@
                   <text class="preview-step-timer" wx:if="{{item.timer > 0}}">⏱ {{utils.formatTime(item.timer)}}</text>
                 </view>
                 <text class="preview-step-text">{{item.text}}</text>
-                <image class="preview-step-img" wx:if="{{item.image}}" src="{{item.image}}" mode="aspectFill" />
+                <image class="preview-step-img" wx:if="{{item.image}}" src="{{item.imageUrl || item.image}}" mode="aspectFill" />
               </view>
             </view>
           </view>
@@ -319,8 +320,8 @@
 
       <!-- Tab 切换 -->
       <view class="picker-tabs">
-        <view class="picker-tab {{dishTab === 'existing' ? 'picker-tab--active' : ''}}" bindtap="switchDishTab" data-tab="existing">已有菜品</view>
         <view class="picker-tab {{dishTab === 'manual' ? 'picker-tab--active' : ''}}" bindtap="switchDishTab" data-tab="manual">手动输入</view>
+        <view class="picker-tab {{dishTab === 'existing' ? 'picker-tab--active' : ''}}" bindtap="switchDishTab" data-tab="existing">已有菜品</view>
       </view>
 
       <!-- 搜索（固定） -->
@@ -338,7 +339,12 @@
                   wx:for="{{filteredDishes}}" wx:key="_id"
                   bindtap="selectDish"
                   data-id="{{item._id}}"
-                  data-name="{{item.name}}">
+                  data-name="{{item.name}}"
+                  data-images="{{item.images}}"
+                  data-image-url="{{item.imageUrl}}">
+              <image class="dish-picker-thumb" wx:if="{{item.displayImages && item.displayImages.length > 0 && item.displayImages[0]}}" src="{{item.displayImages[0]}}" mode="aspectFill" />
+              <image class="dish-picker-thumb" wx:elif="{{item.displayImageUrl}}" src="{{item.displayImageUrl}}" mode="aspectFill" />
+              <view class="dish-picker-thumb-placeholder" wx:else>🍽️</view>
               <view class="dish-picker-info">
                 <text class="dish-picker-name">{{item.name}}</text>
                 <text class="dish-picker-cat" wx:if="{{item.categoryName}}">{{item.categoryName}}</text>

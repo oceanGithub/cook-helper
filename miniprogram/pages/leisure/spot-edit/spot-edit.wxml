@@ -1,0 +1,223 @@
+<view class="page">
+  <view class="form-container" wx:if="{{showForm}}">
+    <!-- 目的地名称 -->
+    <view class="form-section">
+      <view class="form-label">
+        <text class="required">*</text>
+        <text>目的地名称</text>
+      </view>
+      <view class="form-input-wrap {{spotNameFocused ? 'focused' : ''}}">
+        <input
+          class="form-input"
+          placeholder="请输入目的地名称"
+          value="{{spotName}}"
+          bindinput="onNameInput"
+          bindfocus="onInputFocus('spotNameFocused')"
+          bindblur="onInputBlur('spotNameFocused')"
+          maxlength="30"
+        />
+      </view>
+    </view>
+
+    <!-- 目的地位置 -->
+    <view class="form-section">
+      <view class="form-label">
+        <text class="required">*</text>
+        <text>目的地位置</text>
+      </view>
+      <view class="location-picker" bindtap="chooseLocation">
+        <view class="location-icon">📍</view>
+        <view class="location-content">
+          <text wx:if="{{address}}" class="location-text">{{address}}</text>
+          <text wx:else class="location-placeholder">点击选择地图位置</text>
+        </view>
+        <view class="location-arrow">></view>
+      </view>
+    </view>
+
+    <!-- 归属城市 -->
+    <view class="form-section" wx:if="{{showCityDistrict}}">
+      <view class="form-label">
+        <text class="required">*</text>
+        <text>归属城市</text>
+      </view>
+      <picker mode="selector" range="{{cityList}}" value="{{cityIndex}}" bindchange="onCityChange">
+        <view class="form-picker {{cityIndex >= 0 ? 'selected' : 'placeholder'}}">
+          <text>{{cityIndex >= 0 ? cityList[cityIndex] : '请选择城市'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 所属区 -->
+    <view class="form-section" wx:if="{{showCityDistrict}}">
+      <view class="form-label">
+        <text class="required">*</text>
+        <text>所属区</text>
+      </view>
+      <picker mode="selector" range="{{districtList}}" value="{{districtIndex}}" bindchange="onDistrictChange" disabled="{{cityIndex < 0}}">
+        <view class="form-picker {{districtIndex >= 0 ? 'selected' : 'placeholder'}} {{cityIndex < 0 ? 'disabled' : ''}}">
+          <text>{{districtIndex >= 0 ? districtList[districtIndex] : (cityIndex < 0 ? '请先选择城市' : '请选择区')}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 推荐出行方式 -->
+    <view class="form-section">
+      <view class="form-label">
+        <text>推荐出行方式</text>
+        <text class="label-tag">选填</text>
+      </view>
+      <radio-group bindchange="onTravelMethodChange" class="radio-group">
+        <label class="radio-item {{travelMethod === 'other' ? 'active' : ''}}">
+          <radio value="other" checked="{{travelMethod === 'other'}}" color="#FF6B35" />
+          <text>其他</text>
+        </label>
+        <label class="radio-item {{travelMethod === 'self-drive' ? 'active' : ''}}">
+          <radio value="self-drive" checked="{{travelMethod === 'self-drive'}}" color="#FF6B35" />
+          <text>自驾</text>
+        </label>
+      </radio-group>
+      <view class="form-textarea-wrap {{travelNoteFocused ? 'focused' : ''}}" style="margin-top: 16rpx;">
+        <textarea
+          class="form-textarea"
+          placeholder="补充说明（选填）"
+          value="{{travelNote}}"
+          bindinput="onTravelNoteInput"
+          bindfocus="onInputFocus('travelNoteFocused')"
+          bindblur="onInputBlur('travelNoteFocused')"
+          maxlength="200"
+          auto-height
+        />
+      </view>
+    </view>
+
+    <!-- 游玩类型 -->
+    <view class="form-section">
+      <view class="form-label">
+        <text>游玩类型</text>
+        <text class="label-tag">选填</text>
+      </view>
+      <view class="play-type-tags">
+        <view
+          wx:for="{{playTypes}}"
+          wx:key="value"
+          class="play-type-tag {{playType === item.value ? 'active' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="onPlayTypeTap"
+        >
+          {{item.label}}
+        </view>
+      </view>
+      <view wx:if="{{playType === 'other'}}" class="form-textarea-wrap {{playTypeNoteFocused ? 'focused' : ''}}" style="margin-top: 16rpx;">
+        <textarea
+          class="form-textarea"
+          placeholder="请补充说明游玩类型"
+          value="{{playTypeNote}}"
+          bindinput="onPlayTypeNoteInput"
+          bindfocus="onInputFocus('playTypeNoteFocused')"
+          bindblur="onInputBlur('playTypeNoteFocused')"
+          maxlength="100"
+          auto-height
+        />
+      </view>
+    </view>
+
+    <!-- 游玩星级 -->
+    <view class="form-section">
+      <view class="form-label">
+        <text>游玩星级</text>
+        <text class="label-tag">选填</text>
+      </view>
+      <view class="rating-area">
+        <view
+          wx:for="{{[1,2,3,4,5]}}"
+          wx:key="*this"
+          class="rating-star {{rating >= item ? 'active' : ''}}"
+          data-rating="{{item}}"
+          bindtap="onRatingTap"
+        >
+          {{rating >= item ? '★' : '☆'}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 封面图 -->
+    <view class="form-section">
+      <view class="form-label">
+        <text>封面图</text>
+        <text class="label-tag">选填</text>
+      </view>
+      <view class="cover-image-area">
+        <block wx:if="{{coverImage}}">
+          <view class="cover-image-wrap">
+            <image class="cover-image" src="{{coverImage}}" mode="aspectFill" bindtap="previewCoverImage" />
+            <view class="cover-image-remove" catchtap="removeCoverImage">×</view>
+          </view>
+        </block>
+        <block wx:else>
+          <view class="cover-image-add" bindtap="chooseCoverImage">
+            <text class="add-icon">+</text>
+            <text class="add-text">添加封面</text>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 游玩图片 -->
+    <view class="form-section">
+      <view class="form-label">
+        <text>游玩图片</text>
+        <text class="label-tag">选填，最多9张</text>
+      </view>
+      <view class="image-grid">
+        <view wx:for="{{images}}" wx:key="*this" class="image-item">
+          <image class="image-thumb" src="{{item}}" mode="aspectFill" data-index="{{index}}" bindtap="previewImage" />
+          <view class="image-remove" data-index="{{index}}" catchtap="removeImage">×</view>
+        </view>
+        <view wx:if="{{images.length < 9}}" class="image-add" bindtap="chooseImages">
+          <text class="add-icon">+</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 游玩心得 -->
+    <view class="form-section">
+      <view class="form-label">
+        <text>游玩心得</text>
+        <text class="label-tag">选填</text>
+      </view>
+      <view class="form-textarea-wrap {{noteFocused ? 'focused' : ''}}">
+        <textarea
+          class="form-textarea"
+          placeholder="分享你的游玩心得和体验～"
+          value="{{note}}"
+          bindinput="onNoteInput"
+          bindfocus="onInputFocus('noteFocused')"
+          bindblur="onInputBlur('noteFocused')"
+          maxlength="500"
+          auto-height
+        />
+      </view>
+    </view>
+
+    <!-- 底部占位 -->
+    <view class="bottom-placeholder"></view>
+  </view>
+
+  <!-- 提交按钮（固定底部） -->
+  <view class="submit-area" wx:if="{{showForm}}">
+    <t-button
+      theme="primary"
+      size="large"
+      shape="round"
+      loading="{{saving}}"
+      disabled="{{saving}}"
+      bindtap="submitForm"
+      class="submit-btn"
+    >
+      {{isEdit ? '保存修改' : '发布好去处'}}
+    </t-button>
+  </view>
+</view>

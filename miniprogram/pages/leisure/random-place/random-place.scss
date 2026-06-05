@@ -1,0 +1,726 @@
+.page {
+  height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+// 顶部 Header
+.header {
+  background: linear-gradient(135deg, #ff9a56 0%, #ff6b35 100%);
+  padding-top: env(safe-area-inset-top);
+  flex-shrink: 0;
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20rpx 28rpx 16rpx;
+  }
+
+  .location-btn {
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 32rpx;
+    padding: 10rpx 24rpx;
+
+    .loc-icon {
+      font-size: 26rpx;
+    }
+
+    .loc-text {
+      font-size: 28rpx;
+      color: #fff;
+      font-weight: 600;
+      max-width: 320rpx;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .loc-arrow {
+      font-size: 18rpx;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  .mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6rpx;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 32rpx;
+    padding: 10rpx 24rpx;
+
+    .toggle-icon {
+      font-size: 26rpx;
+    }
+
+    .toggle-text {
+      font-size: 26rpx;
+      color: #fff;
+      font-weight: 500;
+    }
+  }
+}
+
+// 游玩类型标签
+.type-tabs {
+  white-space: nowrap;
+  padding: 0 20rpx 20rpx;
+
+  .type-tab {
+    display: inline-block;
+    padding: 10rpx 28rpx;
+    margin-right: 16rpx;
+    border-radius: 28rpx;
+    font-size: 24rpx;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.15);
+    transition: all 0.2s;
+
+    &.active {
+      background: #fff;
+      color: #ff6b35;
+      font-weight: 600;
+    }
+  }
+}
+
+// 城市选择弹窗
+.city-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0);
+  visibility: hidden;
+  transition: all 0.3s;
+
+  &.show {
+    background: rgba(0, 0, 0, 0.5);
+    visibility: visible;
+
+    .city-modal-content {
+      transform: translateY(0);
+    }
+  }
+
+  .city-modal-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-radius: 24rpx 24rpx 0 0;
+    max-height: 70vh;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+
+  .city-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28rpx 32rpx;
+    border-bottom: 1rpx solid #f0f0f0;
+
+    .city-modal-title {
+      font-size: 32rpx;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .city-modal-close {
+      font-size: 32rpx;
+      color: #999;
+      padding: 8rpx;
+    }
+  }
+
+  .city-modal-body {
+    display: flex;
+    height: 50vh;
+  }
+
+  .city-list {
+    width: 240rpx;
+    background: #f8f8f8;
+
+    .city-item {
+      padding: 24rpx 28rpx;
+      font-size: 26rpx;
+      color: #666;
+      text-align: center;
+      border-left: 6rpx solid transparent;
+
+      &.active {
+        background: #fff;
+        color: #ff6b35;
+        font-weight: 600;
+        border-left-color: #ff6b35;
+      }
+    }
+  }
+
+  .district-list {
+    flex: 1;
+
+    .district-item {
+      padding: 24rpx 32rpx;
+      font-size: 26rpx;
+      color: #666;
+      border-bottom: 1rpx solid #f5f5f5;
+
+      &.active {
+        color: #ff6b35;
+        font-weight: 600;
+        background: #fff5f0;
+      }
+    }
+  }
+}
+
+// 数据模式
+.data-mode {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 0;
+  position: relative;
+}
+
+.empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .empty-icon {
+    font-size: 100rpx;
+    margin-bottom: 24rpx;
+  }
+
+  .empty-text {
+    font-size: 32rpx;
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 12rpx;
+  }
+
+  .empty-hint {
+    font-size: 26rpx;
+    color: #999;
+  }
+}
+
+// 骨架屏
+.skeleton-grid {
+  column-count: 2;
+  column-gap: 16rpx;
+  padding: 20rpx 20rpx 0;
+}
+
+.skeleton-card {
+  break-inside: avoid;
+  margin-bottom: 16rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+
+  .sk-cover {
+    width: 100%;
+    padding-top: 120%;
+    background: #eee;
+  }
+
+  .sk-info {
+    padding: 16rpx 16rpx 20rpx;
+  }
+
+  .sk-name {
+    height: 32rpx;
+    width: 70%;
+    background: #eee;
+    border-radius: 6rpx;
+    margin-bottom: 12rpx;
+  }
+
+  .sk-loc {
+    height: 24rpx;
+    width: 50%;
+    background: #eee;
+    border-radius: 6rpx;
+    margin-bottom: 12rpx;
+  }
+
+  .sk-tag {
+    height: 28rpx;
+    width: 40%;
+    background: #eee;
+    border-radius: 14rpx;
+    margin-bottom: 16rpx;
+  }
+
+  .sk-user {
+    height: 30rpx;
+    width: 30rpx;
+    background: #eee;
+    border-radius: 50%;
+  }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.5) 50%,
+      transparent 100%
+    );
+    animation: shimmer-move 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer-move {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.spot-list {
+  flex: 1;
+  height: 0;
+}
+
+.spot-grid {
+  column-count: 2;
+  column-gap: 16rpx;
+  padding: 20rpx 20rpx 0;
+}
+
+.spot-card {
+  break-inside: avoid;
+  margin-bottom: 16rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+
+  .card-cover {
+    position: relative;
+    width: 100%;
+    padding-top: 120%; // 5:6 比例，更紧凑
+    overflow: hidden;
+
+    .cover-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .cover-placeholder {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .placeholder-emoji {
+        font-size: 64rpx;
+        opacity: 0.6;
+      }
+    }
+
+    .card-rating {
+      position: absolute;
+      left: 12rpx;
+      bottom: 12rpx;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      color: #fff;
+      padding: 6rpx 14rpx;
+      border-radius: 20rpx;
+      font-size: 22rpx;
+      display: flex;
+      align-items: center;
+      gap: 4rpx;
+
+      .star {
+        color: #ffb400;
+        font-size: 20rpx;
+      }
+
+      .rating-num {
+        font-weight: 600;
+      }
+    }
+  }
+
+  .card-info {
+    padding: 16rpx 16rpx 20rpx;
+
+    .card-name {
+      font-size: 28rpx;
+      font-weight: 600;
+      color: #333;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-bottom: 8rpx;
+      line-height: 1.4;
+    }
+
+    .card-location {
+      display: flex;
+      align-items: center;
+      gap: 4rpx;
+      margin-bottom: 10rpx;
+
+      .loc-icon {
+        font-size: 20rpx;
+      }
+
+      .loc-text {
+        font-size: 22rpx;
+        color: #999;
+      }
+    }
+
+    .card-bottom {
+      display: flex;
+      align-items: center;
+    }
+
+    .card-tag {
+      display: inline-block;
+      background: #fff5f0;
+      color: #FF6B35;
+      font-size: 20rpx;
+      padding: 4rpx 14rpx;
+      border-radius: 16rpx;
+      font-weight: 500;
+    }
+
+    .card-user {
+      display: flex;
+      align-items: center;
+      gap: 8rpx;
+      margin-top: 12rpx;
+      padding-top: 12rpx;
+      border-top: 1rpx solid #f5f5f5;
+
+      .user-avatar {
+        width: 36rpx;
+        height: 36rpx;
+        border-radius: 50%;
+      }
+
+      .user-avatar-placeholder {
+        width: 36rpx;
+        height: 36rpx;
+        border-radius: 50%;
+        background: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20rpx;
+      }
+
+      .user-name {
+        font-size: 22rpx;
+        color: #999;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+}
+
+.load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14rpx;
+  padding: 32rpx 0 48rpx;
+
+  .dot {
+    width: 14rpx;
+    height: 14rpx;
+    background: #ff6b35;
+    border-radius: 50%;
+    animation: dotBounce 1.4s ease-in-out infinite;
+
+    &:nth-child(2) { animation-delay: 0.16s; }
+    &:nth-child(3) { animation-delay: 0.32s; }
+  }
+
+  .load-end {
+    color: #ccc;
+    font-size: 24rpx;
+  }
+}
+
+@keyframes dotBounce {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.6); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+// 地图模式
+.map-mode {
+  flex: 1;
+  position: relative;
+  height: 0;
+
+  .full-map {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// 地图加载提示
+.map-loading {
+  position: absolute;
+  top: 24rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  pointer-events: none;
+
+  .map-loading-bar {
+    display: flex;
+    align-items: center;
+    gap: 10rpx;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    padding: 12rpx 28rpx;
+    border-radius: 32rpx;
+  }
+
+  .loading-dot {
+    width: 12rpx;
+    height: 12rpx;
+    background: #fff;
+    border-radius: 50%;
+    animation: mapDotBounce 1.2s ease-in-out infinite;
+
+    &:nth-child(2) { animation-delay: 0.15s; }
+    &:nth-child(3) { animation-delay: 0.3s; }
+  }
+
+  .loading-text {
+    font-size: 24rpx;
+    color: #fff;
+    margin-left: 4rpx;
+  }
+}
+
+@keyframes mapDotBounce {
+  0%, 80%, 100% { opacity: 0.4; transform: scale(0.7); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+// 定位按钮
+.locate-btn {
+  position: absolute;
+  right: 42rpx; // 与发布按钮居中对齐：32rpx + (100rpx - 80rpx) / 2
+  bottom: 280rpx; // 发布按钮上方：160rpx + 100rpx + 20rpx间距
+  width: 80rpx;
+  height: 80rpx;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+  z-index: 10;
+
+  .locate-icon {
+    font-size: 36rpx;
+  }
+
+  &:active {
+    background: #f5f5f5;
+  }
+}
+
+.map-spot-card {
+  position: absolute;
+  bottom: 40rpx;
+  left: 24rpx;
+  right: 24rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  box-shadow: 0 12rpx 40rpx rgba(0, 0, 0, 0.15);
+  transform: translateY(200rpx);
+  opacity: 0;
+  transition: all 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+
+  &.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .map-card-cover {
+    width: 140rpx;
+    height: 140rpx;
+    border-radius: 14rpx;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    .map-card-img {
+      width: 100%;
+      height: 100%;
+    }
+
+    .map-card-placeholder {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48rpx;
+      opacity: 0.6;
+    }
+  }
+
+  .map-card-info {
+    flex: 1;
+    min-width: 0;
+
+    .map-card-name {
+      font-size: 30rpx;
+      font-weight: 600;
+      color: #333;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-bottom: 6rpx;
+    }
+
+    .map-card-loc {
+      font-size: 24rpx;
+      color: #999;
+      margin-bottom: 10rpx;
+    }
+
+    .map-card-bottom {
+      display: flex;
+      align-items: center;
+      gap: 16rpx;
+
+      .map-card-type {
+        background: #fff5f0;
+        color: #FF6B35;
+        font-size: 20rpx;
+        padding: 4rpx 14rpx;
+        border-radius: 16rpx;
+        font-weight: 500;
+      }
+
+      .map-card-rating {
+        font-size: 24rpx;
+        color: #ffb400;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .map-card-arrow {
+    font-size: 28rpx;
+    color: #ccc;
+    flex-shrink: 0;
+    margin-left: 4rpx;
+  }
+}
+
+// 浮动发布按钮（与厨房页面一致）
+.fab-container {
+  position: fixed;
+  right: 32rpx;
+  bottom: 160rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 100;
+}
+
+.fab-item {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  background: #FF6B35;
+  box-shadow: 0 8rpx 24rpx rgba(255, 107, 53, 0.4);
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+    background: #e55a2b;
+  }
+}
+
+.fab-icon {
+  font-size: 36rpx;
+  color: #fff;
+  line-height: 1;
+}
+
+.fab-label {
+  font-size: 20rpx;
+  color: #fff;
+  margin-top: -2rpx;
+}
+
+.fab-pulse {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: rgba(255, 107, 53, 0.3);
+  animation: fab-pulse-anim 2s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes fab-pulse-anim {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.4); opacity: 0; }
+}

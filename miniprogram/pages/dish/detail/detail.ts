@@ -64,6 +64,15 @@ Component({
     },
   },
 
+  pageLifetimes: {
+    show() {
+      if (wx.getStorageSync('needsRefresh')) {
+        wx.removeStorageSync('needsRefresh')
+        this.loadDish()
+      }
+    },
+  },
+
   methods: {
     async loadDish() {
       this.setData({ loading: true })
@@ -209,7 +218,6 @@ Component({
       const dish = this.data.dish
       if (!dish) return
       wx.setStorageSync('editDishId', dish._id)
-      wx.setStorageSync('needsRefresh', true)
       wx.navigateTo({ url: '/pages/dish/edit/edit' })
     },
 
@@ -242,6 +250,16 @@ Component({
     copyAddress() {
       if (!this.data.dish?.address) return
       wx.setClipboardData({ data: this.data.dish.address })
+    },
+
+    copyXhsLink() {
+      if (!(this.data.dish as any)?.xiaohongshuUrl) return
+      wx.setClipboardData({
+        data: (this.data.dish as any).xiaohongshuUrl,
+        success() {
+          wx.showToast({ title: '链接已复制，请打开小红书查看', icon: 'none', duration: 2000 })
+        }
+      })
     },
 
     goBack() {

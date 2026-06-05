@@ -1030,7 +1030,7 @@
 .dish-picker-list {
   display: flex;
   flex-direction: column;
-  gap: 2rpx;
+  gap: 16rpx;
 }
 
 .dish-picker-item {
@@ -1039,7 +1039,8 @@
   justify-content: space-between;
   padding: 24rpx 20rpx;
   background: #fafafa;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
+  border: 2rpx solid #f0f0f0;
   transition: all 0.15s;
 
   &:active {
@@ -1050,6 +1051,28 @@
 .dish-picker-item--selected {
   background: #FFF5EE;
   border: 2rpx solid #FF6B35;
+}
+
+.dish-picker-thumb {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+}
+
+.dish-picker-thumb-placeholder {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+  background: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  opacity: 0.5;
 }
 
 .dish-picker-info {

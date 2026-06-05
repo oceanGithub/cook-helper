@@ -5,7 +5,6 @@
   "navigationBarTextStyle": "black",
   "usingComponents": {
     "t-input": "tdesign-miniprogram/input/input",
-    "t-rate": "tdesign-miniprogram/rate/rate",
     "t-button": "tdesign-miniprogram/button/button"
   }
 }

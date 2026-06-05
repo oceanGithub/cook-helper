@@ -1,0 +1,340 @@
+<view class="random-page">
+  <!-- 背景浮动装饰 -->
+  <view class="bg-decor">
+    <text class="bg-decor-item bg-decor--1">🎲</text>
+    <text class="bg-decor-item bg-decor--2">🍽️</text>
+    <text class="bg-decor-item bg-decor--3">✨</text>
+    <text class="bg-decor-item bg-decor--4">🎯</text>
+    <text class="bg-decor-item bg-decor--5">🥘</text>
+    <text class="bg-decor-item bg-decor--6">🌟</text>
+  </view>
+
+  <!-- 主内容区 -->
+  <view class="content">
+    <!-- 上半部分：可滚动 -->
+    <scroll-view class="main-scroll" scroll-y enhanced show-scrollbar="{{false}}" fast-deceleration>
+      <!-- 加载中 -->
+      <view class="loading-wrap" wx:if="{{loading}}">
+        <view class="loading-spinner"></view>
+        <text class="loading-text">加载菜品中...</text>
+      </view>
+
+      <!-- 真正无菜品（所有分组都没有菜品） -->
+      <view class="empty-wrap" wx:elif="{{allDishes.length === 0 && !showPoolModal}}">
+        <text class="empty-icon">🍽️</text>
+        <text class="empty-title">暂无菜品</text>
+        <text class="empty-desc">请先在食堂添加菜品</text>
+      </view>
+
+      <!-- 抽取区域（包括抽取池为空的情况） -->
+      <view class="roll-area" wx:else>
+        <!-- 菜品池设置入口 -->
+        <view class="pool-setting-btn {{poolDishes.length === 0 ? 'pool-setting-btn--empty' : ''}}" bindtap="openPoolModal">
+          <text class="pool-setting-icon">⚙️</text>
+          <text class="pool-setting-text">设置抽取池</text>
+          <text class="pool-count">{{poolDishes.length === 0 ? '未选择' : '已选 ' + poolDishes.length + ' 道'}}</text>
+        </view>
+
+        <!-- 中央抽取卡片 -->
+        <view class="roll-card-wrap">
+          <view class="roll-card-ring"></view>
+          <view class="roll-card {{isRolling ? 'roll-card--rolling' : ''}} {{showResult ? 'roll-card--result' : ''}}">
+            <!-- 抽取中的滚动名字 -->
+            <view class="rolling-content" wx:if="{{isRolling}}">
+              <text class="rolling-icon">🎲</text>
+              <text class="rolling-name">{{rollingName}}</text>
+              <text class="rolling-hint">抽取中...</text>
+            </view>
+
+            <!-- 抽取结果 -->
+            <view class="result-content" wx:elif="{{showResult && currentDish}}">
+              <view class="result-image-wrap">
+                <image
+                  class="result-image"
+                  wx:if="{{currentDish.images && currentDish.images.length > 0}}"
+                  src="{{currentDish.images[0]}}"
+                  mode="aspectFill"
+                />
+                <image
+                  class="result-image"
+                  wx:elif="{{currentDish.imageUrl}}"
+                  src="{{currentDish.imageUrl}}"
+                  mode="aspectFill"
+                />
+                <view class="result-image-placeholder" wx:else>
+                  <text class="result-placeholder-icon">{{currentDish.isCustom || currentDish.isDefault ? '🎲' : '🍽️'}}</text>
+                </view>
+              </view>
+              <text class="result-name">{{currentDish.name}}</text>
+              <view class="result-meta">
+                <text class="result-category" wx:if="{{currentDish.categoryName}}">{{currentDish.categoryName}}</text>
+                <text class="result-custom-tag" wx:elif="{{currentDish.isCustom}}">自定义</text>
+                <text class="result-custom-tag" wx:elif="{{currentDish.isDefault}}">默认设置</text>
+                <view class="result-stars" wx:if="{{currentDish.rating}}">
+                  <text class="result-star {{index < currentDish.rating ? 'result-star--active' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this">★</text>
+                </view>
+              </view>
+              <view class="result-detail-btn" wx:if="{{!currentDish.isCustom && !currentDish.isDefault}}" bindtap="goDetail">
+                <text class="result-detail-text">查看详情 →</text>
+              </view>
+            </view>
+
+            <!-- 初始状态 -->
+            <view class="init-content" wx:else>
+              <text class="init-icon">{{poolDishes.length === 0 ? '⚙️' : '🎲'}}</text>
+              <text class="init-title">{{poolDishes.length === 0 ? '抽取池为空' : '今天吃什么？'}}</text>
+              <text class="init-desc">{{poolDishes.length === 0 ? '请先设置抽取池，选择要抽取的菜品' : '点击下方按钮，让命运决定'}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 操作按钮 -->
+        <view class="action-area">
+          <view
+            class="roll-btn {{isRolling ? 'roll-btn--rolling' : ''}} {{poolDishes.length === 0 && !showResult ? 'roll-btn--empty' : ''}}"
+            bindtap="{{poolDishes.length === 0 && !showResult ? 'openPoolModal' : (showResult ? 'reRoll' : 'startRoll')}}"
+          >
+            <view class="roll-btn-ring"></view>
+            <text class="roll-btn-text">{{isRolling ? '抽取中...' : (showResult ? '🔄 换一个' : (poolDishes.length === 0 ? '⚙️ 设置抽取池' : '🎲 开始抽取'))}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 底部固定：历史记录 -->
+    <view class="history-section" wx:if="{{history.length > 0}}">
+      <text class="history-title">📜 抽取历史</text>
+      <scroll-view class="history-list" scroll-x enhanced show-scrollbar="{{false}}" fast-deceleration>
+        <view class="history-item {{item.isCustom ? 'history-item--custom' : ''}}" wx:for="{{history}}" wx:key="_id">
+          <view class="history-image-wrap">
+            <image
+              class="history-image"
+              wx:if="{{item.images && item.images.length > 0}}"
+              src="{{item.images[0]}}"
+              mode="aspectFill"
+            />
+            <view class="history-image-placeholder" wx:else>
+              <text class="history-placeholder-icon">{{item.isCustom ? '✏️' : '🍽️'}}</text>
+            </view>
+          </view>
+          <text class="history-name">{{item.name}}</text>
+          <!-- <text class="history-custom-tag" wx:if="{{item.isCustom}}">自定义</text> -->
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 抽取池设置弹窗 -->
+  <view class="pool-modal" wx:if="{{showPoolModal}}">
+    <view class="pool-modal-mask" bindtap="closePoolModal"></view>
+    <view class="pool-modal-content">
+      <!-- 标题栏 -->
+      <view class="pool-modal-header">
+        <text class="pool-modal-title">设置抽取池</text>
+        <text class="pool-modal-close" bindtap="closePoolModal">✕</text>
+      </view>
+
+      <!-- 顶部Tab切换 -->
+      <view class="pool-tabs">
+        <view
+          class="pool-tab {{activePoolTab === 'default' ? 'pool-tab--active' : ''}}"
+          bindtap="switchPoolTab"
+          data-tab="default"
+        >
+          <text class="pool-tab-text">默认设置</text>
+        </view>
+        <view
+          class="pool-tab {{activePoolTab === 'group' ? 'pool-tab--active' : ''}}"
+          bindtap="switchPoolTab"
+          data-tab="group"
+        >
+          <text class="pool-tab-text">分组菜品</text>
+        </view>
+        <view
+          class="pool-tab {{activePoolTab === 'custom' ? 'pool-tab--active' : ''}}"
+          bindtap="switchPoolTab"
+          data-tab="custom"
+        >
+          <text class="pool-tab-text">自定义</text>
+        </view>
+      </view>
+
+      <!-- 默认设置Tab内容 -->
+      <view class="pool-tab-content" wx:if="{{activePoolTab === 'default'}}">
+        <!-- 添加新菜品 -->
+        <view class="custom-input-area">
+          <input
+            class="custom-input"
+            placeholder="添加新菜品到默认设置"
+            value="{{defaultDishName}}"
+            bindinput="onDefaultDishInput"
+            confirm-type="done"
+            bindconfirm="addDefaultDish"
+          />
+          <view class="custom-add-btn" bindtap="addDefaultDish">
+            <text class="custom-add-text">+ 添加</text>
+          </view>
+        </view>
+
+        <!-- 操作栏 -->
+        <view class="pool-select-all">
+          <view class="pool-select-all-left">
+            <view class="pool-checkbox {{isDefaultAllSelected ? 'pool-checkbox--checked' : ''}}" bindtap="toggleSelectAllDefault">
+              <text wx:if="{{isDefaultAllSelected}}">✓</text>
+            </view>
+            <text class="pool-select-all-text">全选</text>
+          </view>
+          <view class="pool-reset-btn" bindtap="resetDefaultPool">
+            <text class="pool-reset-text">重置为默认</text>
+          </view>
+        </view>
+
+        <!-- 菜品列表 -->
+        <scroll-view class="pool-dish-list" scroll-y enhanced show-scrollbar="{{false}}" fast-deceleration>
+          <view class="pool-dish-grid">
+            <view
+              class="pool-dish-item {{item.checked ? 'pool-dish-item--checked' : ''}} {{item.isSystem ? 'pool-dish-item--system' : ''}}"
+              wx:for="{{defaultPoolDishes}}"
+              wx:key="name"
+            >
+              <view class="pool-dish-check" bindtap="toggleDefaultDish" data-name="{{item.name}}">
+                <text wx:if="{{item.checked}}">✓</text>
+              </view>
+              <text class="pool-dish-name" bindtap="toggleDefaultDish" data-name="{{item.name}}">{{item.name}}</text>
+              <view class="custom-dish-delete" catchtap="removeDefaultDish" data-name="{{item.name}}">
+                <text class="custom-dish-delete-icon">×</text>
+              </view>
+              <view class="pool-dish-indicator" wx:if="{{item.checked}}"></view>
+            </view>
+          </view>
+          <!-- 空状态 -->
+          <view class="pool-empty" wx:if="{{defaultPoolDishes.length === 0}}">
+            <text class="pool-empty-icon">📝</text>
+            <text class="pool-empty-text">还没有默认菜品</text>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 分组菜品Tab内容 -->
+      <view class="pool-tab-content" wx:if="{{activePoolTab === 'group'}}">
+        <!-- 分组Tab -->
+        <view class="pool-group-tabs-wrap">
+          <scroll-view class="pool-group-tabs" scroll-x enhanced show-scrollbar="{{false}}" fast-deceleration>
+            <view
+              class="pool-group-tab {{activeGroupTab === item._id ? 'pool-group-tab--active' : ''}} {{selectedGroupIds.includes(item._id) ? 'pool-group-tab--selected' : ''}}"
+              wx:for="{{groups}}"
+              wx:key="_id"
+              bindtap="switchGroupTab"
+              data-id="{{item._id}}"
+            >
+              <text class="pool-group-tab-name">{{item.name}}</text>
+              <text class="pool-group-tab-check" wx:if="{{selectedGroupIds.includes(item._id)}}">✓</text>
+            </view>
+          </scroll-view>
+        </view>
+
+        <!-- 全选按钮 -->
+        <view class="pool-select-all" bindtap="toggleSelectAll">
+          <view class="pool-select-all-left">
+            <view class="pool-checkbox {{isGroupAllSelected ? 'pool-checkbox--checked' : ''}}">
+              <text wx:if="{{isGroupAllSelected}}">✓</text>
+            </view>
+            <text class="pool-select-all-text">全选当前分组</text>
+          </view>
+          <text class="pool-select-all-hint">{{isGroupAllSelected ? '取消全选' : '一键全选'}}</text>
+        </view>
+
+        <!-- 菜品列表 -->
+        <scroll-view class="pool-dish-list" scroll-y enhanced show-scrollbar="{{false}}" fast-deceleration>
+          <view class="pool-dish-grid">
+            <view
+              class="pool-dish-item {{item._checked ? 'pool-dish-item--checked' : ''}}"
+              wx:for="{{currentGroupDishes}}"
+              wx:key="_id"
+              bindtap="toggleDish"
+              data-id="{{item._id}}"
+            >
+              <view class="pool-dish-check">
+                <text wx:if="{{item._checked}}">✓</text>
+              </view>
+              <text class="pool-dish-name">{{item.name}}</text>
+              <view class="pool-dish-indicator" wx:if="{{item._checked}}"></view>
+            </view>
+          </view>
+          <!-- 空状态 -->
+          <view class="pool-empty" wx:if="{{currentGroupDishes.length === 0}}">
+            <text class="pool-empty-icon">🍽️</text>
+            <text class="pool-empty-text">该分组暂无菜品</text>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 自定义Tab内容 -->
+      <view class="pool-tab-content" wx:if="{{activePoolTab === 'custom'}}">
+        <!-- 输入区域 -->
+        <view class="custom-input-area">
+          <input
+            class="custom-input"
+            placeholder="输入菜品名称"
+            value="{{customDishName}}"
+            bindinput="onCustomDishInput"
+            confirm-type="done"
+            bindconfirm="addCustomDish"
+          />
+          <view class="custom-add-btn" bindtap="addCustomDish">
+            <text class="custom-add-text">+ 添加</text>
+          </view>
+        </view>
+
+        <!-- 全选自定义菜品 -->
+        <view class="pool-select-all" bindtap="toggleSelectAllCustom" wx:if="{{customDishes.length > 0}}">
+          <view class="pool-select-all-left">
+            <view class="pool-checkbox {{isCustomAllSelected ? 'pool-checkbox--checked' : ''}}">
+              <text wx:if="{{isCustomAllSelected}}">✓</text>
+            </view>
+            <text class="pool-select-all-text">全选自定义菜品</text>
+          </view>
+          <text class="pool-select-all-hint">{{isCustomAllSelected ? '取消全选' : '一键全选'}}</text>
+        </view>
+
+        <!-- 自定义菜品列表 -->
+        <scroll-view class="pool-dish-list" scroll-y enhanced show-scrollbar="{{false}}" fast-deceleration>
+          <view class="pool-dish-grid">
+            <view
+              class="pool-dish-item {{item.checked ? 'pool-dish-item--checked' : ''}}"
+              wx:for="{{customDishes}}"
+              wx:key="id"
+            >
+              <view class="pool-dish-check" bindtap="toggleCustomDish" data-id="{{item.id}}">
+                <text wx:if="{{item.checked}}">✓</text>
+              </view>
+              <text class="pool-dish-name" bindtap="toggleCustomDish" data-id="{{item.id}}">{{item.name}}</text>
+              <view class="custom-dish-delete" catchtap="removeCustomDish" data-id="{{item.id}}">
+                <text class="custom-dish-delete-icon">×</text>
+              </view>
+              <view class="pool-dish-indicator" wx:if="{{item.checked}}"></view>
+            </view>
+          </view>
+          <!-- 空状态 -->
+          <view class="pool-empty" wx:if="{{customDishes.length === 0}}">
+            <text class="pool-empty-icon">✏️</text>
+            <text class="pool-empty-text">还没有自定义菜品</text>
+            <text class="pool-empty-hint">在上方输入菜品名称并添加</text>
+          </view>
+        </scroll-view>
+      </view>
+
+      <!-- 底部确认栏 -->
+      <view class="pool-modal-footer">
+        <view class="pool-footer-stats">
+          <text class="pool-selected-count" wx:if="{{activePoolTab === 'default'}}">已选 {{checkedDefaultCount}} 道菜品</text>
+          <text class="pool-selected-count" wx:elif="{{activePoolTab === 'group'}}">已选 {{selectedDishIds.length}} 道菜品</text>
+          <text class="pool-selected-count" wx:else>已选 {{checkedCustomCount}} 道菜品</text>
+        </view>
+        <view class="pool-confirm-btn" bindtap="confirmPool">
+          <text class="pool-confirm-text">确认选择</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

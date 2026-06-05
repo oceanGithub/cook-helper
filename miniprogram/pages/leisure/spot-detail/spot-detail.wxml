@@ -1,0 +1,112 @@
+<view class="page" wx:if="{{spot}}">
+  <!-- 封面图 -->
+  <view class="cover-section">
+    <block wx:if="{{coverImageUrl}}">
+      <image class="cover-image" src="{{coverImageUrl}}" mode="aspectFill" bindtap="previewCoverImage" />
+    </block>
+    <block wx:else>
+      <view class="cover-placeholder">
+        <text class="placeholder-icon">🏖️</text>
+        <text class="placeholder-text">暂无封面图</text>
+      </view>
+    </block>
+    <!-- 星级 -->
+    <view class="cover-rating" wx:if="{{spot.rating}}">
+      <text wx:for="{{[1,2,3,4,5]}}" wx:key="*this" class="star {{spot.rating >= item ? 'active' : ''}}">★</text>
+    </view>
+  </view>
+
+  <!-- 基本信息 -->
+  <view class="info-card">
+    <view class="spot-name">{{spot.name}}</view>
+    <view class="spot-location">
+      <text class="location-icon">📍</text>
+      <text>{{spot.city}} {{spot.district}}</text>
+    </view>
+    <view class="spot-address" bindtap="openNavigation">
+      <text class="address-text">{{spot.address}}</text>
+      <text class="navigate-btn">导航 ></text>
+    </view>
+  </view>
+
+  <!-- 详细信息 -->
+  <view class="detail-card">
+    <!-- 游玩类型 -->
+    <view class="detail-item" wx:if="{{spot.playType}}">
+      <view class="detail-label">游玩类型</view>
+      <view class="detail-value">
+        <text class="type-tag">{{playTypeLabel}}</text>
+        <text wx:if="{{spot.playTypeNote}}" class="type-note"> - {{spot.playTypeNote}}</text>
+      </view>
+    </view>
+
+    <!-- 出行方式 -->
+    <view class="detail-item" wx:if="{{spot.travelMethod}}">
+      <view class="detail-label">推荐出行</view>
+      <view class="detail-value">
+        <text>{{travelMethodLabel}}</text>
+        <text wx:if="{{spot.travelNote}}" class="travel-note"> · {{spot.travelNote}}</text>
+      </view>
+    </view>
+
+    <!-- 游玩心得 -->
+    <view class="detail-item" wx:if="{{spot.note}}">
+      <view class="detail-label">游玩心得</view>
+      <view class="detail-value note-text">{{spot.note}}</view>
+    </view>
+  </view>
+
+  <!-- 游玩图片 -->
+  <view class="images-card" wx:if="{{imageUrls.length > 0}}">
+    <view class="card-title">游玩图片</view>
+    <view class="images-grid">
+      <image
+        wx:for="{{imageUrls}}"
+        wx:key="*this"
+        class="grid-image"
+        src="{{item}}"
+        mode="aspectFill"
+        data-index="{{index}}"
+        bindtap="previewImage"
+      />
+    </view>
+  </view>
+
+  <!-- 位置地图 -->
+  <view class="map-card" wx:if="{{spot.latitude && spot.longitude}}">
+    <view class="card-title">位置信息</view>
+    <map
+      class="mini-map"
+      longitude="{{spot.longitude}}"
+      latitude="{{spot.latitude}}"
+      scale="17"
+      markers="{{markers}}"
+      show-location
+      enable-zoom="{{false}}"
+      enable-scroll="{{false}}"
+      bindtap="openNavigation"
+    />
+  </view>
+
+  <!-- 发布者信息 -->
+  <view class="publisher-card">
+    <view class="publisher-info">
+      <image wx:if="{{spot.createdByAvatarUrl}}" class="publisher-avatar" src="{{spot.createdByAvatarUrl}}" mode="aspectFill" />
+      <view wx:else class="publisher-avatar-placeholder">👤</view>
+      <view class="publisher-name">{{spot.createdByName || '匿名用户'}}</view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar" wx:if="{{isOwner}}">
+    <view class="bar-btn edit-btn" bindtap="goEdit">编辑</view>
+    <view class="bar-btn delete-btn" bindtap="deleteSpot">删除</view>
+  </view>
+
+  <view class="bottom-spacer" wx:if="{{isOwner}}"></view>
+</view>
+
+<!-- 加载中 -->
+<view class="loading-wrap" wx:if="{{loading}}">
+  <view class="loading-spinner">加载中...</view>
+</view>

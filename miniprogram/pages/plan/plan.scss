@@ -14,6 +14,40 @@ page {
   box-sizing: border-box;
 }
 
+// ====== 背景浮动装饰 ======
+.bg-decor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-decor-item {
+  position: absolute;
+  opacity: 0.06;
+}
+
+.bg-decor--1 { top: 12%; left: 8%; font-size: 56rpx; animation: decor-float 8s ease-in-out infinite; }
+.bg-decor--2 { top: 28%; right: 12%; font-size: 48rpx; animation: decor-float 9s ease-in-out 1.5s infinite; }
+.bg-decor--3 { top: 50%; left: 5%; font-size: 42rpx; animation: decor-float 7.5s ease-in-out 3s infinite; }
+.bg-decor--4 { top: 65%; right: 8%; font-size: 50rpx; animation: decor-float 8.5s ease-in-out 0.5s infinite; opacity: 0.05; }
+.bg-decor--5 { bottom: 15%; left: 15%; font-size: 44rpx; animation: decor-float 9.5s ease-in-out 2s infinite; opacity: 0.07; }
+.bg-decor--6 { bottom: 30%; right: 18%; font-size: 36rpx; animation: sparkle 2s ease-in-out infinite; opacity: 0.1; }
+
+@keyframes decor-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-20rpx) rotate(8deg); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.05; transform: scale(1); }
+  50% { opacity: 0.15; transform: scale(1.2); }
+}
+
 // ====== 顶部搜索+筛选模块（固定定位） ======
 .top-bar {
   position: fixed;
@@ -54,29 +88,56 @@ page {
   margin-left: 8rpx;
 }
 
-// ====== 难度筛选 ======
-.diff-filter {
+// ====== 一级 Tab 切换 ======
+.tab-filter {
   display: flex;
   gap: 16rpx;
-  padding: 16rpx 0 24rpx;
+  padding: 20rpx 0 16rpx;
 }
 
-.diff-tag {
-  padding: 12rpx 24rpx;
-  border-radius: 32rpx;
-  font-size: 24rpx;
-  background: rgba(255, 255, 255, 0.9);
+.tab-item {
+  padding: 16rpx 36rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.95);
   color: #666;
-  border: 2rpx solid transparent;
+  border: 3rpx solid #eee;
   transition: all 0.3s ease;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+  letter-spacing: 2rpx;
 }
 
-.diff-tag--active {
+.tab-item--active {
   background: linear-gradient(135deg, #FF6B35 0%, #FF8F5E 100%);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 4rpx 16rpx rgba(255, 107, 53, 0.3);
+  box-shadow: 0 6rpx 20rpx rgba(255, 107, 53, 0.35);
+  transform: scale(1.02);
+}
+
+// ====== 二级难度筛选 ======
+.diff-filter {
+  display: flex;
+  gap: 12rpx;
+  padding: 12rpx 0 20rpx;
+}
+
+.diff-tag {
+  padding: 10rpx 20rpx;
+  border-radius: 24rpx;
+  font-size: 22rpx;
+  background: transparent;
+  color: #888;
+  border: 2rpx solid #ddd;
+  transition: all 0.3s ease;
+}
+
+.diff-tag--active {
+  background: rgba(255, 107, 53, 0.1);
+  color: #FF6B35;
+  border-color: #FF6B35;
+  box-shadow: none;
 }
 
 // ====== 菜谱列表（占满剩余空间） ======

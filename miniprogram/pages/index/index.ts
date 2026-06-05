@@ -27,6 +27,7 @@ interface Dish {
 Component({
   data: {
     statusBarHeight: 20,
+    navHeight: 88,
     openid: '',
     groups: [] as any[],
     currentGroupId: '',
@@ -69,11 +70,19 @@ Component({
   lifetimes: {
     attached() {
       const { statusBarHeight } = wx.getSystemInfoSync()
-      this.setData({ statusBarHeight })
+      const menuBtn = wx.getMenuButtonBoundingClientRect()
+      // 导航栏高度 = 胶囊底部 + 胶囊顶部与状态栏的间距
+      const navHeight = menuBtn.bottom + (menuBtn.top - statusBarHeight)
+
+      this.setData({
+        statusBarHeight,
+        navHeight,
+      })
     },
   },
   pageLifetimes: {
     async show() {
+      this.data._selectingCat = false
       if (!app.globalData.loggedIn) {
         wx.reLaunch({ url: '/pages/login/login' })
         return
@@ -82,14 +91,12 @@ Component({
       const needsRefresh = wx.getStorageSync('needsRefresh')
       if (needsRefresh) {
         wx.removeStorageSync('needsRefresh')
-        const gid = wx.getStorageSync('currentGroupId') || ''
-        if (gid && gid !== this.data.currentGroupId) {
-          await this.init()
-          return
-        }
-        this.setData({ dishesLoading: true })
+        // 重新加载分组列表（可能有新创建的分组）
+        await this.loadGroups()
+        // 重新加载分类和菜品
+        this.setData({ dishesLoading: true, activeCategoryId: '', categories2: [] })
         try {
-          await this.refreshCategories()
+          await this.initCategories()
           await this.loadDishes()
         } catch (e) { console.error(e) }
         this.setData({ dishesLoading: false })
@@ -105,6 +112,7 @@ Component({
   methods: {
     async init() {
       this.setData({ loading: true })
+      this.data._selectingCat = false
       try {
         await app.globalData.loginPromise
         this.setData({ openid: app.globalData.openid, activeCategoryId: '', categories2: [] })
@@ -222,17 +230,42 @@ Component({
       this.setData({ categories2: list })
     },
 
+    onCategoryTap(e: any) {
+      console.log('onCategoryTap event:', e)
+      console.log('onCategoryTap dataset:', e.currentTarget.dataset)
+    },
+
     selectCategory(e: any) {
+      console.log('selectCategory event:', e)
       const id = e.detail.value || e.currentTarget.dataset.id
-      if (id === this.data.activeCategoryId || this.data._selectingCat) return
+      console.log('selectCategory id:', id, 'activeCategoryId:', this.data.activeCategoryId, '_selectingCat:', this.data._selectingCat)
+
+      if (!id) {
+        console.log('selectCategory: no id')
+        return
+      }
+
+      if (id === this.data.activeCategoryId) {
+        console.log('selectCategory: same category')
+        return
+      }
+
+      if (this.data._selectingCat) {
+        console.log('selectCategory: already selecting')
+        return
+      }
+
       this.data._selectingCat = true
       this.setData({ activeCategoryId: id, dishesLoading: true })
-      this.loadCategories2(id).then(() => {
-        this.loadDishes().then(() => {
+
+      this.loadCategories2(id)
+        .then(() => this.loadDishes())
+        .catch((err) => console.error('切换分类失败', err))
+        .finally(() => {
+          console.log('selectCategory finally, resetting _selectingCat')
           this.setData({ dishesLoading: false })
           this.data._selectingCat = false
         })
-      })
     },
 
     // ====== 左滑 ======
@@ -618,11 +651,20 @@ Component({
       }
       this.setData({ catSaving: true })
       try {
-        await db.collection('categories').doc(this.data.renameCatId).update({ data: { name } })
+        await wx.cloud.callFunction({
+          name: 'dishOp',
+          data: {
+            action: 'update',
+            collection: 'categories',
+            id: this.data.renameCatId,
+            data: { name }
+          }
+        })
         this.setData({ showRename: false, renameCatId: '', renameCatName: '' })
         wx.showToast({ title: '已更新', icon: 'success' })
         this.refreshCategories()
       } catch (e) {
+        console.error('重命名失败', e)
         wx.showToast({ title: '更新失败', icon: 'none' })
       } finally {
         this.setData({ catSaving: false })

@@ -23,7 +23,19 @@ async function cleanupImages(images) {
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
   const openid = wxContext.OPENID
-  const { action, collection, id, data } = event
+  const { action, collection, id, data, fileIDs } = event
+
+  // 获取云存储文件临时URL（管理员权限）
+  if (action === 'getTempFileURL') {
+    if (!fileIDs || fileIDs.length === 0) return { fileList: [] }
+    try {
+      const result = await cloud.getTempFileURL({ fileList: fileIDs })
+      return { fileList: result.fileList || [] }
+    } catch (e) {
+      console.error('getTempFileURL failed:', e)
+      return { fileList: [], err: String(e) }
+    }
+  }
 
   if (!ALLOWED_COLLECTIONS.includes(collection)) {
     return { err: 'forbidden collection', ok: false }
@@ -43,7 +55,8 @@ exports.main = async (event, context) => {
 
   if (action === 'update') {
     const doc = await db.collection(collection).doc(id).get()
-    if (doc.data.createdBy !== openid) {
+    // categories 属于分组，任何成员可编辑；dishes 只有创建者可编辑
+    if (collection !== 'categories' && doc.data.createdBy !== openid) {
       return { err: '无权编辑他人菜品', ok: false }
     }
     return await db.collection(collection).doc(id).update({
@@ -56,7 +69,8 @@ exports.main = async (event, context) => {
 
   if (action === 'remove') {
     const doc = await db.collection(collection).doc(id).get()
-    if (doc.data.createdBy !== openid) {
+    // categories 属于分组，任何成员可删除；dishes 只有创建者可删除
+    if (collection !== 'categories' && doc.data.createdBy !== openid) {
       return { err: '无权删除他人菜品', ok: false }
     }
     // 清理云存储中的图片
